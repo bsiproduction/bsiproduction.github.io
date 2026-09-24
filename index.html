@@ -5,12 +5,12 @@
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <meta name="theme-color" content="#0A0B0D">
 <meta name="robots" content="noindex">
-<title>BSI Shop</title>
+<title>ShopCall</title>
 <link rel="icon" href="/favicon.ico" sizes="any">
 <link rel="icon" type="image/png" sizes="32x32" href="/icons/icon-32.png">
 <link rel="apple-touch-icon" href="/icons/icon-180.png">
 <link rel="manifest" href="/manifest.webmanifest">
-<meta name="apple-mobile-web-app-title" content="BSI Shop">
+<meta name="apple-mobile-web-app-title" content="ShopCall">
 <style>
   :root { --bg: #0A0B0D; --fg: #F1F2F3; --muted: #A9AFB6; --raised: #2F3135; --link: #7FB4EA; }
   html, body { margin: 0; height: 100%; background: var(--bg); overflow: hidden; }
@@ -33,7 +33,7 @@
 <body>
 <div id="loader" role="status">
   <img src="/icons/mark-white.png" alt="BSI">
-  <div>Loading BSI Shop…</div>
+  <div>Loading ShopCall…</div>
   <div class="bar" aria-hidden="true"><i></i></div>
   <div class="slow" id="slow"></div>
 </div>
@@ -50,7 +50,7 @@
   setTimeout(function () { slow.innerHTML = 'Still loading. <a href="' + APP + '">Try again</a>'; }, 40000);
   if (/Chrome\/\d/.test(ua) && !apple) {
     var f = document.createElement('iframe');
-    f.title = 'BSI Shop';
+    f.title = 'ShopCall';
     f.allow = 'camera; clipboard-write; fullscreen';
     f.onload = function () { f.className = 'ready'; document.getElementById('loader').className = 'done'; };
     f.src = APP + '?shell=1';
@@ -60,6 +60,6 @@
     requestAnimationFrame(function () { setTimeout(function () { location.replace(APP); }, 30); });
   }
 </script>
-<noscript><a href="https://script.google.com/a/macros/bsiproduction.com/s/AKfycbxU4dP5Pcshs_bNFCrWA14lU9Y85dZ4vX0VCn18IpWwaDOOUrm28rGKz6u4m5XyA8dT/exec" style="color:#F1F2F3">Open BSI Shop</a></noscript>
+<noscript><a href="https://script.google.com/a/macros/bsiproduction.com/s/AKfycbxU4dP5Pcshs_bNFCrWA14lU9Y85dZ4vX0VCn18IpWwaDOOUrm28rGKz6u4m5XyA8dT/exec" style="color:#F1F2F3">Open ShopCall</a></noscript>
 </body>
 </html>
