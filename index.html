@@ -12,12 +12,31 @@
 <link rel="manifest" href="/manifest.webmanifest">
 <meta name="apple-mobile-web-app-title" content="BSI Shop">
 <style>
-  :root { --bg: #0A0B0D; }
+  :root { --bg: #0A0B0D; --fg: #F1F2F3; --muted: #A9AFB6; --raised: #2F3135; --link: #7FB4EA; }
   html, body { margin: 0; height: 100%; background: var(--bg); overflow: hidden; }
-  iframe { position: fixed; inset: 0; width: 100%; height: 100%; border: 0; background: var(--bg); }
+  iframe { position: fixed; inset: 0; width: 100%; height: 100%; border: 0; background: var(--bg); opacity: 0; transition: opacity .2s; }
+  iframe.ready { opacity: 1; }
+  /* the loading screen: Google builds the whole page (and its data) before it sends a byte, so without this
+     the screen sits blank for several seconds and looks broken */
+  #loader { position: fixed; inset: 0; display: flex; flex-direction: column; align-items: center; justify-content: center;
+    padding: 0 16px; color: var(--fg); font: 500 15px/1.5 Montserrat, system-ui, -apple-system, sans-serif; text-align: center; }
+  #loader img { width: 120px; height: auto; margin-bottom: 28px; }
+  #loader .bar { width: 160px; height: 3px; border-radius: 2px; background: var(--raised); overflow: hidden; margin: 14px 0 0; }
+  #loader .bar i { display: block; width: 40%; height: 100%; border-radius: 2px; background: var(--fg); animation: slide 1.2s ease-in-out infinite; }
+  @keyframes slide { from { transform: translateX(-100%); } to { transform: translateX(250%); } }
+  @media (prefers-reduced-motion: reduce) { #loader .bar i { animation-duration: 3s; } }
+  #loader .slow { color: var(--muted); font-size: 13px; max-width: 320px; margin-top: 18px; min-height: 40px; }
+  #loader a { color: var(--link); text-decoration: none; }
+  #loader.done { display: none; }
 </style>
 </head>
 <body>
+<div id="loader" role="status">
+  <img src="/icons/mark-white.png" alt="BSI">
+  <div>Loading BSI Shop…</div>
+  <div class="bar" aria-hidden="true"><i></i></div>
+  <div class="slow" id="slow"></div>
+</div>
 <!-- The BSI Shop Android app opens this page, so Android shows no
      address bar; the shop web app runs inside. shell=1 is what lets the Hub be framed. -->
 <script>
@@ -25,10 +44,20 @@
   // third-party cookies, and Google sign-in refuses to load in a frame), so everything else goes to the app itself.
   var APP = 'https://script.google.com/a/macros/bsiproduction.com/s/AKfycbxU4dP5Pcshs_bNFCrWA14lU9Y85dZ4vX0VCn18IpWwaDOOUrm28rGKz6u4m5XyA8dT/exec';
   var ua = navigator.userAgent, apple = /iPhone|iPad|iPod/.test(ua) || (/Macintosh/.test(ua) && navigator.maxTouchPoints > 1);
+  var slow = document.getElementById('slow');
+  // a slow load says so, then offers a way out
+  setTimeout(function () { slow.textContent = 'Still loading. The shop data can take a little while on a slow connection.'; }, 10000);
+  setTimeout(function () { slow.innerHTML = 'Still loading. <a href="' + APP + '">Try again</a>'; }, 40000);
   if (/Chrome\/\d/.test(ua) && !apple) {
-    document.write('<iframe src="' + APP + '?shell=1" title="BSI Shop" allow="camera; clipboard-write; fullscreen"></iframe>');
+    var f = document.createElement('iframe');
+    f.title = 'BSI Shop';
+    f.allow = 'camera; clipboard-write; fullscreen';
+    f.onload = function () { f.className = 'ready'; document.getElementById('loader').className = 'done'; };
+    f.src = APP + '?shell=1';
+    document.body.appendChild(f);
   } else {
-    location.replace(APP);
+    // Safari keeps this page on screen until Google's page arrives, so paint the loading screen first, then go
+    requestAnimationFrame(function () { setTimeout(function () { location.replace(APP); }, 30); });
   }
 </script>
 <noscript><a href="https://script.google.com/a/macros/bsiproduction.com/s/AKfycbxU4dP5Pcshs_bNFCrWA14lU9Y85dZ4vX0VCn18IpWwaDOOUrm28rGKz6u4m5XyA8dT/exec" style="color:#F1F2F3">Open BSI Shop</a></noscript>
