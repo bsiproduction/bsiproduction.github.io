@@ -1,0 +1,8 @@
+[{
+  "relation": ["delegate_permission/common.handle_all_urls"],
+  "target": {
+    "namespace": "android_app",
+    "package_name": "com.bsiproduction.shop",
+    "sha256_cert_fingerprints": ["1F:E1:39:99:B7:8D:19:2D:1A:E0:AB:0F:DD:B4:30:9D:FF:24:BB:71:9D:3B:E0:94:14:96:9E:E0:98:3A:44:36"]
+  }
+}]

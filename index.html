@@ -1,0 +1,36 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#0A0B0D">
+<meta name="robots" content="noindex">
+<title>BSI Shop</title>
+<link rel="icon" href="/favicon.ico" sizes="any">
+<link rel="icon" type="image/png" sizes="32x32" href="/icons/icon-32.png">
+<link rel="apple-touch-icon" href="/icons/icon-180.png">
+<link rel="manifest" href="/manifest.webmanifest">
+<meta name="apple-mobile-web-app-title" content="BSI Shop">
+<style>
+  :root { --bg: #0A0B0D; }
+  html, body { margin: 0; height: 100%; background: var(--bg); overflow: hidden; }
+  iframe { position: fixed; inset: 0; width: 100%; height: 100%; border: 0; background: var(--bg); }
+</style>
+</head>
+<body>
+<!-- The BSI Shop Android app opens this page, so Android shows no
+     address bar; the shop web app runs inside. shell=1 is what lets the Hub be framed. -->
+<script>
+  // Only Chromium lets the framed Google page see the signed-in account (Safari/iOS and Firefox block
+  // third-party cookies, and Google sign-in refuses to load in a frame), so everything else goes to the app itself.
+  var APP = 'https://script.google.com/a/macros/bsiproduction.com/s/AKfycbxU4dP5Pcshs_bNFCrWA14lU9Y85dZ4vX0VCn18IpWwaDOOUrm28rGKz6u4m5XyA8dT/exec';
+  var ua = navigator.userAgent, apple = /iPhone|iPad|iPod/.test(ua) || (/Macintosh/.test(ua) && navigator.maxTouchPoints > 1);
+  if (/Chrome\/\d/.test(ua) && !apple) {
+    document.write('<iframe src="' + APP + '?shell=1" title="BSI Shop" allow="camera; clipboard-write; fullscreen"></iframe>');
+  } else {
+    location.replace(APP);
+  }
+</script>
+<noscript><a href="https://script.google.com/a/macros/bsiproduction.com/s/AKfycbxU4dP5Pcshs_bNFCrWA14lU9Y85dZ4vX0VCn18IpWwaDOOUrm28rGKz6u4m5XyA8dT/exec" style="color:#F1F2F3">Open BSI Shop</a></noscript>
+</body>
+</html>
