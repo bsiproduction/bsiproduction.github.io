@@ -1,0 +1,82 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#0A0B0D">
+<meta name="robots" content="noindex">
+<title>ShopCall · Scan</title>
+<link rel="icon" href="/favicon.ico" sizes="any">
+<link rel="apple-touch-icon" href="/icons/icon-180.png">
+<link rel="manifest" href="/manifest.webmanifest">
+<meta name="apple-mobile-web-app-title" content="ShopCall">
+<!-- Scan a ShopCall QR (item tags, Loader case labels) INSIDE the home-screen app (9/25): the iPhone camera app always
+     opens a link in Safari, so scanning from here keeps the tech in ShopCall. jsQR (Apache-2.0) reads the code. -->
+<style>
+  :root { --bg: #0A0B0D; --fg: #F1F2F3; --muted: #A9AFB6; --raised: #2F3135; --link: #7FB4EA; --ok: #4FC38A; --warn: #F2A93B; }
+  html, body { margin: 0; height: 100%; background: var(--bg); color: var(--fg); font: 500 15px/1.5 Montserrat, system-ui, -apple-system, sans-serif; overflow: hidden; }
+  video { position: fixed; inset: 0; width: 100%; height: 100%; object-fit: cover; background: #000; }
+  .frame { position: fixed; left: 50%; top: 45%; width: min(64vw, 64vh, 320px); aspect-ratio: 1; transform: translate(-50%, -50%);
+    border-radius: 14px; box-shadow: 0 0 0 100vmax rgba(0,0,0,.45); outline: 3px solid var(--fg); }
+  .frame.hit { outline-color: var(--ok); }
+  .bar { position: fixed; left: 0; right: 0; bottom: 0; padding: 16px 16px calc(16px + env(safe-area-inset-bottom, 0px)); background: linear-gradient(transparent, rgba(0,0,0,.85) 30%);
+    display: flex; flex-direction: column; align-items: center; gap: 12px; text-align: center; }
+  .msg { max-width: 360px; min-height: 45px; }
+  .msg.warn { color: var(--warn); }
+  a.btn { font: inherit; font-weight: 600; color: var(--fg); background: var(--raised); border: 0; border-radius: 6px; padding: 11px 20px; min-height: 44px; box-sizing: border-box; text-decoration: none; }
+  a.btn:focus-visible { outline: 2px solid var(--link); outline-offset: 2px; }
+  .top { position: fixed; top: 0; left: 0; right: 0; padding: calc(12px + env(safe-area-inset-top, 0px)) 16px 12px; background: linear-gradient(rgba(0,0,0,.8), transparent);
+    font-weight: 700; letter-spacing: .02em; }
+</style>
+</head>
+<body>
+<video id="v" playsinline muted autoplay></video>
+<div class="frame" id="frame" aria-hidden="true"></div>
+<div class="top">Scan a tag</div>
+<div class="bar">
+  <div class="msg" id="msg" role="status">Point the camera at a ShopCall tag or a Loader case label.</div>
+  <a class="btn" href="/">Back to ShopCall</a>
+</div>
+<script src="/scan/jsQR.js"></script>
+<script>
+  // a code is followed only when it is a ShopCall page: BSI's Apps Script (/exec or /dev), or this shell with ?go= / ?p=
+  var HUB = /^https:\/\/script\.google\.com\/a\/macros\/bsiproduction\.com\/s\/[A-Za-z0-9_-]+\/(exec|dev)(\?|$)/;
+  var SHELL = /^https:\/\/bsiproduction\.github\.io\/?\?/;
+  var v = document.getElementById('v'), msg = document.getElementById('msg'), frame = document.getElementById('frame');
+  var c = document.createElement('canvas'), ctx = c.getContext('2d', { willReadFrequently: true }), done = false, lastBad = '';
+  function say(t, warn) { msg.textContent = t; msg.className = 'msg' + (warn ? ' warn' : ''); }
+  function go(url) {
+    done = true; frame.className = 'frame hit'; say('Opening…');
+    try { (v.srcObject && v.srcObject.getTracks() || []).forEach(function (t) { t.stop(); }); } catch (e) {}
+    // through the shell, so it opens the way ShopCall always does on this device (framed on Android, straight on iOS)
+    location.replace(SHELL.test(url) ? url : '/?go=' + encodeURIComponent(url));
+  }
+  function tick() {
+    if (done) return;
+    if (v.readyState >= 2 && v.videoWidth) {
+      var w = v.videoWidth, h = v.videoHeight, s = Math.min(1, 720 / Math.max(w, h));
+      c.width = Math.round(w * s); c.height = Math.round(h * s);
+      ctx.drawImage(v, 0, 0, c.width, c.height);
+      var img = ctx.getImageData(0, 0, c.width, c.height), code = window.jsQR && jsQR(img.data, img.width, img.height, { inversionAttempts: 'dontInvert' });
+      if (code && code.data) {
+        var t = String(code.data).trim();
+        if (HUB.test(t) || SHELL.test(t)) return go(t);
+        if (t !== lastBad) { lastBad = t; say('That code isn’t a ShopCall tag. Try a tag from Inventory or a Loader case label.', true); }
+      }
+    }
+    requestAnimationFrame(tick);
+  }
+  if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
+    say('This device can’t use the camera here. Use the camera app instead: it opens the tag in the browser.', true);
+  } else {
+    navigator.mediaDevices.getUserMedia({ video: { facingMode: { ideal: 'environment' } }, audio: false }).then(function (stream) {
+      v.srcObject = stream; v.play().catch(function () {}); requestAnimationFrame(tick);
+    }).catch(function (err) {
+      var denied = err && (err.name === 'NotAllowedError' || err.name === 'SecurityError');
+      say(denied ? 'ShopCall can’t use the camera. Tap Allow when asked, or turn the camera on for this site in Settings, then open Scan again.'
+                 : 'The camera didn’t start (' + (err && err.name || 'unknown') + '). Close other apps using it and try again.', true);
+    });
+  }
+</script>
+</body>
+</html>

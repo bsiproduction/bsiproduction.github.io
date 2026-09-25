@@ -43,21 +43,26 @@
   // Only Chromium lets the framed Google page see the signed-in account (Safari/iOS and Firefox block
   // third-party cookies, and Google sign-in refuses to load in a frame), so everything else goes to the app itself.
   var APP = 'https://script.google.com/a/macros/bsiproduction.com/s/AKfycbxU4dP5Pcshs_bNFCrWA14lU9Y85dZ4vX0VCn18IpWwaDOOUrm28rGKz6u4m5XyA8dT/exec';
+  // where to go: a tag / label QR carries ?go=<a ShopCall page> (only BSI's own Apps Script pages are followed);
+  // a ?p=… link opens that page of the crew app; plain / opens the app's front page (9/25: scanning opens the right page)
+  var TARGET = APP, q = new URLSearchParams(location.search), go = q.get('go') || '';
+  if (/^https:\/\/script\.google\.com\/a\/macros\/bsiproduction\.com\/s\/[A-Za-z0-9_-]+\/(exec|dev)(\?|$)/.test(go)) TARGET = go;
+  else if (q.get('p')) { q.delete('go'); TARGET = APP + '?' + q.toString(); }
   var ua = navigator.userAgent, apple = /iPhone|iPad|iPod/.test(ua) || (/Macintosh/.test(ua) && navigator.maxTouchPoints > 1);
   var slow = document.getElementById('slow');
   // a slow load says so, then offers a way out
   setTimeout(function () { slow.textContent = 'Still loading. The shop data can take a little while on a slow connection.'; }, 10000);
-  setTimeout(function () { slow.innerHTML = 'Still loading. <a href="' + APP + '">Try again</a>'; }, 40000);
+  setTimeout(function () { slow.innerHTML = 'Still loading. <a href="' + TARGET + '">Try again</a>'; }, 40000);
   if (/Chrome\/\d/.test(ua) && !apple) {
     var f = document.createElement('iframe');
     f.title = 'ShopCall';
     f.allow = 'camera; clipboard-write; fullscreen';
     f.onload = function () { f.className = 'ready'; document.getElementById('loader').className = 'done'; };
-    f.src = APP + '?shell=1';
+    f.src = TARGET + (TARGET.indexOf('?') === -1 ? '?' : '&') + 'shell=1';
     document.body.appendChild(f);
   } else {
     // Safari keeps this page on screen until Google's page arrives, so paint the loading screen first, then go
-    requestAnimationFrame(function () { setTimeout(function () { location.replace(APP); }, 30); });
+    requestAnimationFrame(function () { setTimeout(function () { location.replace(TARGET); }, 30); });
   }
 </script>
 <noscript><a href="https://script.google.com/a/macros/bsiproduction.com/s/AKfycbxU4dP5Pcshs_bNFCrWA14lU9Y85dZ4vX0VCn18IpWwaDOOUrm28rGKz6u4m5XyA8dT/exec" style="color:#F1F2F3">Open ShopCall</a></noscript>
