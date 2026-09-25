@@ -20,7 +20,7 @@
      the screen sits blank for several seconds and looks broken */
   #loader { position: fixed; inset: 0; display: flex; flex-direction: column; align-items: center; justify-content: center;
     padding: 0 16px; color: var(--fg); font: 500 15px/1.5 Montserrat, system-ui, -apple-system, sans-serif; text-align: center; }
-  #loader img { width: 120px; height: auto; margin-bottom: 28px; }
+  #loader img { width: 220px; max-width: 70vw; height: auto; margin-bottom: 24px; }
   #loader .bar { width: 160px; height: 3px; border-radius: 2px; background: var(--raised); overflow: hidden; margin: 14px 0 0; }
   #loader .bar i { display: block; width: 40%; height: 100%; border-radius: 2px; background: var(--fg); animation: slide 1.2s ease-in-out infinite; }
   @keyframes slide { from { transform: translateX(-100%); } to { transform: translateX(250%); } }
@@ -32,7 +32,7 @@
 </head>
 <body>
 <div id="loader" role="status">
-  <img src="/icons/mark-white.png" alt="BSI">
+  <img src="/icons/lockup-white.svg" alt="BSI ShopCall">
   <div>Loading ShopCall…</div>
   <div class="bar" aria-hidden="true"><i></i></div>
   <div class="slow" id="slow"></div>
