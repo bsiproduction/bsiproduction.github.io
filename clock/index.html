@@ -1,0 +1,490 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>BSI Clock</title>
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="robots" content="noindex">
+<meta name="theme-color" content="#0A0B0D">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="BSI Clock">
+<link rel="icon" href="/favicon.ico" sizes="any">
+<link rel="apple-touch-icon" href="/icons/icon-180.png">
+<!-- built by bsi-shop-systems tools/build-clock-page.js from hub/ClockKiosk.html; edit that, not this -->
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+/* ============================================================
+   Console themes — docs/ui-standards.md §4. GRAPHITE IS CANONICAL. ahm is
+   UNTESTED until Settings ships a theme switcher: do not tune it. daylight got
+   its page stones and readable header on 9/25 (Tristan's call), its white header
+   with a stone edge and its department colours on 9/29 ("C"); the rest of it
+   follows the suite's shared light values (kit/design/tokens.json).
+   COLOR VALUES ONLY, one block per theme. Spacing, type, radii,
+   surfaces and components live in UiStyles.html. Adding a theme =
+   copy one [data-theme] block and fill every role.
+   ============================================================ */
+:root {
+  /* ---- graphite (canonical, 2026-09-17 "C"): a stage with the house lights down. Near-black
+     base; the few colors that appear are things lit on it. Color means attention (severity),
+     done (a moment, never a list), or gig identity (tape). ---- */
+  --bg-base: #0A0B0D;  --bg-raised: #15171B;  --bg-sunken: #050607;
+  --fg: #F1F2F3;       --fg-muted: #A9AFB6;   --fg-faint: #7D848C;
+  --border: #22262B;   --border-strong: #30353C;
+  --accent: #7FB4EA;   --accent-fg: #06121F;
+  /* status values are the suite's shared ones (bsi-app-updates kit/design/tokens.json, 2026-09-25): every one passes 4.5:1
+     on the floor, the wells AND the hero. Danger was #EB5B52 (3.8:1 on the hero) — now one step lighter. */
+  --warn: #F2A93B;     --ok: #4FC38A;         --danger: #F27A72;   --info: #7FB4EA;
+  --warn-fg: #1A1200;  --danger-fg: #0B0C0E;  /* text on a warn / danger fill (armed buttons) */
+  --done: #3BC0AE;     --done-fg: #04211C;    /* complete / clear — moments only */
+  /* VIEW IDENTITY (2026-09-23, Tristan: "something that tells someone which view they're looking at quickly"): each page's
+     own color, on the page's FRAME only — the header's tint, the view name's icon, the tab bar's current tab, a well's top
+     edge. Never on content, rows or chips (those colors mean attention, done or tape). Light hue / deep tint per page.
+     Chosen by measurement (2026-09-23 critique): every page hue is PASTEL and >= dE00 17 from warn / danger / done / ok /
+     link / every tape (tape is saturated, a page hue never is); the name + icon always carry the page too (under red-green
+     color blindness some page hues merge).
+     MINERAL (2026-09-24, Tristan picked it from 11 options: design/header-palettes-2026-09-24/): stone names. Every hue
+     >= dE00 17.0 from every state / tape (inventory vs ok is the tightest); closest two pages 11.3 (was 9.2).
+     Check a change with: node design/header-palettes-2026-09-24/tools/de.js <palettes.json> */
+  --v-today: #D4C6A1; --v-today-deep: #312B1A;   /* sandstone */
+  --v-gigs: #CFCAFF; --v-gigs-deep: #2B293A;   /* lapis (a lilac-lapis: a truer blue sits on the link) */
+  --v-projects: #FAB598; --v-projects-deep: #38271F;   /* coral */
+  --v-board: #F3B0D3; --v-board-deep: #37252E;   /* rose quartz */
+  --v-inventory: #BEE6CF; --v-inventory-deep: #1E3026;   /* jade */
+  --v-approvals: #E9ADFE; --v-approvals-deep: #312735;   /* amethyst */
+  --v-errors: #FCB0B2; --v-errors-deep: #392526;   /* rhodochrosite (rose: errors keep the red family) */
+  --v-calendar: #B4D76B; --v-calendar-deep: #282E1D;   /* citrine */
+  --v-tasks: #A0E1EE; --v-tasks-deep: #1C2E32;   /* aquamarine, brought into the family (R5.10): was #28DEFE, s 99% l 58% (the others l 63-90%); now s 70% l 78%, 17.2 from the nearest fixed hue, 14.5 from the nearest page */
+  --v-notes: #A0A8A0; --v-notes-deep: #2B2E2B;   /* pewter (kept; 15.5 from today) */
+  --v-feedback: #DEECB8; --v-feedback-deep: #292E1D;   /* peridot (was lime: lime sat 9.6 from citrine; 11.3 from jade) */
+  --v-orders: #B8C4A6; --v-orders-deep: #272923;   /* prehnite (sage, Tristan 2026-09-24): 17.3 from ok, 10.5 from today */
+  /* suite round B (2026-09-25): the wall and sub-rentals get their own stone; the item page, the timeline and the truck plan
+     ride their parent's (inventory / gigs), so a scan lands on a familiar frame */
+  --v-wall: #E8D8B0; --v-wall-deep: #2E2A1E;   /* travertine */
+  --v-subrentals: #C9D6E8; --v-subrentals-deep: #262B33;   /* moonstone */
+  /* R3.5 (2026-09-28): the desk tools reached from the Desk menu get their own hue (they borrowed Today's). Measured like the
+     rest: ≥ ΔE00 17 from warn, danger, done, ok, link and every tape; ≥ 12 from every other page hue */
+  --v-config: #C6ADA9; --v-config-deep: #332A29;   /* morganite (a dusty rose-taupe): 17.4 from the nearest fixed hue, 13.2 from errors */
+  --v-registry: #AA9BD4; --v-registry-deep: #29263A;   /* iolite (a grey violet): 17.6 from link, 12.2 from gigs */
+  --v-patches: #BDA9C6; --v-patches-deep: #2D2733;   /* lepidolite (Patch, 2026-09-27 proposal): 19.9 from white tape, 11.9 from rose quartz */
+  /* DEPARTMENTS (crew calls, 2026-09-28, Tristan: "sorted by department into different colors"): identity on the crew day
+     timeline's bars and the role marks beside them, never on status. A categorical set checked with the dataviz validator on
+     --bg-raised (lightness band, chroma, CVD and normal-vision separation of neighbours, >= 3:1 contrast: all pass in this
+     order) and kept clear of the reserved hues: no red / amber / teal (Lighting is olive-gold, not yellow: 22.7 from warn,
+     31.6 from done). Every place a colour shows also names the department in words. */
+  --dept-audio: #3987E5; --dept-lighting: #8F9318; --dept-video: #9085E9; --dept-staging: #008300; --dept-management: #D55181; --dept-other: #6F7680;
+  /* three tiers on near-black: hero lit, queue lifted, reference barely off the floor */
+  /* hero = what the C lab actually rendered (the old tuning block's color-mix outranked the token) */
+  /* hairlines ON the hero surface: --border-strong vanished on it (round 2 step 5) */
+  --border-hero: #44474C; --border-strong-hero: #53575D;
+  --surface-hero: #2F3135; --surface-queue: #121418; --surface-ref: #0E1013;
+  /* timeline phases by lightness, not hue (2026-09-22: violet/blue/sea read as stock palette and put a
+     blue beside blue tape and blue links): prep = outline, out = lit, intake = dim */
+  --phase-prep: #0A0B0D; --phase-prep-fg: #A9AFB6; --phase-prep-edge: #7D848C;
+  --phase-out: #8A9099;  --phase-out-fg: #0A0B0D;  /* brightest phase, but below the hero: reference data is never lit brighter than the work */
+  --phase-intake: #3A3F46; --phase-intake-fg: #D9DCE0;
+  /* meter: lit segments are neutral while a pull is in progress; done when complete */
+  /* R5.5 (2026-09-28): the empty track shows the bar's length (it was #23272D, 1.2:1): 3.06:1 on a well, and its own value on
+     the lit hero (3.06:1 there); field outlines get the same ~3:1 edge (they were --border-strong, 1.45:1) */
+  /* K8 (Tristan 9/28): softened to about 2:1 — the track 1.90 on bg-raised (where most tracks and fields sit), 1.95 on a queue
+     card, 2.08 on the floor; the hero's track 2.00 on the hero. 3:1 was brighter than he wanted */
+  --meter-lit: #D9DCE0; --meter-off: #43464D; --meter-off-hero: #5A5E65;
+  --field-edge: #43464D;
+  /* the truck's pink (Tristan 9/24) no longer borrows Shop Board's page hue (#F3B0D3 was the same hex): a saturated pink that is
+     no page colour (ΔE00 16.7 from the nearest page hue, 20 from every state and tape); the bar's words say "on the truck" */
+  --meter-truck: #E967BE;
+  color-scheme: dark;
+
+}
+[data-theme="ahm"] {
+  /* ---- charcoal, the reference's cyan; attention stays amber ---- */
+  --bg-base: #1C2426;  --bg-raised: #232D30;  --bg-sunken: #151C1E;
+  --fg: #F1F4F4;       --fg-muted: #B2C1C3;   --fg-faint: #8FA3A6;
+  --border: #2F3C3F;   --border-strong: #3C4B4F;
+  --accent: #4FC3E8;   --accent-fg: #04191F;
+  --warn: #F2A93B;     --ok: #5CCB8F;         --danger: #E5524A;   --info: #4FC3E8;
+  --warn-fg: #1A1200;  --danger-fg: #FFFFFF;
+  --done: #3FC9B4;     --done-fg: #04211C;
+  /* hairlines ON the hero surface: --border-strong vanished on it (round 2 step 5) */
+  --border-hero: #415156; --border-strong-hero: #4E6066;
+  --surface-hero: #2C393D; --surface-queue: #232D30; --surface-ref: #1F282A;
+  --phase-prep: #5B4FC4; --phase-prep-fg: #F0EDFF; --phase-prep-edge: #5B4FC4;
+  --phase-out: #2F6FC8;  --phase-out-fg: #F3F7FE;
+  --phase-intake: #1F7F8C; --phase-intake-fg: #EAF7F9;
+  --meter-lit: #E3EAEA; --meter-off: #2F3C3F; --meter-off-hero: #2F3C3F; --field-edge: #3C4B4F;
+}
+[data-theme="daylight"] {
+  /* ---- light; same roles, same meanings ---- */
+  --bg-base: #F4F5F6;  --bg-raised: #FFFFFF;  --bg-sunken: #E9EBEE;
+  --fg: #17191C;       --fg-muted: #4E545C;   --fg-faint: #646A73;
+  --border: #D9DCE1;   --border-strong: #C3C8CF;
+  --accent: #2F6FA8;   --accent-fg: #FFFFFF;
+  /* the suite's shared light values (kit/design/tokens.json): the old warn / ok / done were 3.5–4.1:1 on white */
+  --warn: #8F5A00;     --ok: #187A49;         --danger: #C2372F;   --info: #2F6FA8;
+  --warn-fg: #FFFFFF;  --danger-fg: #FFFFFF;
+  --done: #157468;     --done-fg: #FFFFFF;
+  /* hairlines ON the hero surface: --border-strong vanished on it (round 2 step 5) */
+  --border-hero: #D9DCE1; --border-strong-hero: #C3C8CF;
+  --surface-hero: #FFFFFF; --surface-queue: #FAFBFB; --surface-ref: #F7F8F9;
+  --phase-prep: #5B4FC4; --phase-prep-fg: #F0EDFF; --phase-prep-edge: #5B4FC4;
+  --phase-out: #2F6FC8;  --phase-out-fg: #F3F7FE;
+  --phase-intake: #1F7F8C; --phase-intake-fg: #EAF7F9;
+  --meter-lit: #3A4048; --meter-off: #D9DCE1; --meter-off-hero: #D9DCE1; --field-edge: #C3C8CF;
+  --meter-truck: #C94F8C;   /* a deeper rose on light: the pale one washes out on the off track */
+  /* EACH PAGE'S STONE ON LIGHT (Tristan 2026-09-29, "C", from design/light-headers-2026-09-29/: the headers were "so light it looks
+     really washed out"). The header stays white; the page's STONE (-deep here = the same Mineral pastel graphite uses for the
+     current tab, so a page wears one stone in both themes) is a 4px rule under the header and the current tab's fill
+     (UiStyles "LIGHT HEADERS" block). --v-<page> is the stone's dark INK: the phone header's icon, the tabs' current word, the
+     wells' top edges and the write buttons' light. Measured: in Light the meaning colours (warn, ok, done, link, danger) are
+     all mid-dark and saturated, so a coloured dark tab sat on one of them (a jade tab read "ok"); each ink is >= dE00 17 from
+     every Light meaning colour and tape, and >= 4.6:1 on white and on its stone. The stones keep graphite's measurements
+     (>= 17 from every state and tape, pages >= 11.3 apart; two gaps predate this: Today / Wall 4.4, moonstone 8.1 from white
+     tape). The filled write button's words are >= 4.8:1 on every ink (they were 3.0:1 on Inventory's). Re-measure with
+     node design/light-headers-2026-09-29/tools/directions.js */
+  --v-today: #3A2C01; --v-today-deep: #D4C6A1;   /* sandstone · ink 13.6:1 on white, 8.0:1 on the stone, 21.6 from black tape */
+  --v-gigs: #423872; --v-gigs-deep: #CFCAFF;   /* lapis · ink 10.3:1 on white, 6.6:1 on the stone, 17.1 from black tape */
+  --v-projects: #501B00; --v-projects-deep: #FAB598;   /* coral · ink 14.0:1 on white, 8.1:1 on the stone, 22.5 from red tape */
+  --v-board: #530839; --v-board-deep: #F3B0D3;   /* rose quartz · ink 14.4:1 on white, 8.2:1 on the stone, 23.1 from black tape */
+  --v-inventory: #003822; --v-inventory-deep: #BEE6CF;   /* jade · ink 13.2:1 on white, 9.7:1 on the stone, 20.3 from done */
+  --v-approvals: #49005C; --v-approvals-deep: #E9ADFE;   /* amethyst · ink 14.6:1 on white, 8.3:1 on the stone, 20 from black tape */
+  --v-errors: #5A0317; --v-errors-deep: #FCB0B2;   /* rhodochrosite · ink 14.4:1 on white, 8.2:1 on the stone, 25.8 from black tape */
+  --v-calendar: #263401; --v-calendar-deep: #B4D76B;   /* citrine · ink 13.3:1 on white, 8.2:1 on the stone, 24.4 from black tape */
+  --v-tasks: #024E5B; --v-tasks-deep: #A0E1EE;   /* aquamarine · ink 9.4:1 on white, 6.5:1 on the stone, 17.1 from black tape */
+  --v-notes: #1D341F; --v-notes-deep: #A0A8A0;   /* pewter · ink 13.4:1 on white, 5.5:1 on the stone, 18.6 from black tape */
+  --v-feedback: #2A3201; --v-feedback-deep: #DEECB8;   /* peridot · ink 13.5:1 on white, 10.8:1 on the stone, 23.8 from black tape */
+  --v-orders: #273311; --v-orders-deep: #B8C4A6;   /* prehnite · ink 13.4:1 on white, 7.3:1 on the stone, 21.2 from black tape */
+  --v-wall: #3A2C01; --v-wall-deep: #E8D8B0;   /* travertine · ink 13.6:1 on white, 9.7:1 on the stone, 21.6 from black tape */
+  --v-patches: #4F3858; --v-patches-deep: #BDA9C6;   /* lepidolite · ink 10.3:1 on white, 4.7:1 on the stone, 17 from black tape */
+  --v-subrentals: #2E407C; --v-subrentals-deep: #C9D6E8;   /* moonstone · ink 9.8:1 on white, 6.7:1 on the stone, 17.1 from black tape */
+  --v-config: #432420; --v-config-deep: #C6ADA9;   /* morganite · ink 13.9:1 on white, 6.6:1 on the stone, 17.9 from black tape */
+  --v-registry: #341D5C; --v-registry-deep: #AA9BD4;   /* iolite · ink 14.2:1 on white, 5.7:1 on the stone, 17.1 from black tape */
+  /* DEPARTMENTS on light (2026-09-29, Tristan: "yes" to tuning them): each keeps its Dark hue and sits where the bar is >= 3:1
+     on white AND carries the dark body text at >= 4.5:1 (the bar's words are --fg on Light: UiStyles "LIGHT HEADERS" block).
+     Dataviz validator on white, in this order: lightness band, chroma, adjacent CVD (worst 9.8 deutan) and normal-vision
+     separation, contrast all pass; >= 16 from every Light meaning colour. All-pairs, Lighting / Staging sit 8.4 apart
+     (Dark's Audio / Video 9.8): the department is always named beside its colour. Other stays a neutral grey, as in Dark.
+     Re-measure with node design/light-headers-2026-09-29/tools/depts.js */
+  --dept-audio: #4796F7; --dept-lighting: #959A20; --dept-video: #8F83E9; --dept-staging: #4EA72B; --dept-management: #E86191; --dept-other: #7C8289;
+  color-scheme: light;
+}
+</style>
+
+<style>
+  /* The time clock (ClockApp.gs, round 4): the gig iPad on a stand (T1), or someone's own phone (T2). A page of its own: big type,
+     big keys, one thing at a time, back to the keypad by itself. Graphite, as the app. */
+  html, body { margin: 0; background: var(--bg-base); color: var(--fg); font-family: Montserrat, system-ui, sans-serif; -webkit-tap-highlight-color: transparent; }
+  body { min-height: 100vh; padding: max(16px, env(safe-area-inset-top)) 16px max(16px, env(safe-area-inset-bottom)); box-sizing: border-box; }
+  .ck { max-width: 640px; margin: 0 auto; display: grid; gap: 20px; }
+  .ck-top { display: flex; flex-wrap: wrap; align-items: baseline; justify-content: space-between; gap: 8px 16px; }
+  .ck-time { font-size: 44px; font-weight: 700; font-variant-numeric: tabular-nums; letter-spacing: -.01em; }
+  .ck-date { color: var(--fg-muted); font-size: 17px; }
+  .ck-gig { background: var(--bg-raised); border-radius: 12px; padding: 14px 16px; display: grid; gap: 4px; }
+  .ck-gig b { font-size: 19px; }
+  .ck-gig .sub, .sub { color: var(--fg-muted); font-size: 15px; }
+  .ck-gigline { display: flex; align-items: center; justify-content: space-between; gap: 12px; }
+  .ck-gigline > span { display: grid; gap: 4px; min-width: 0; }
+  .ck-change { font: 600 16px Montserrat, sans-serif; color: var(--fg); background: none; border: 1px solid var(--border-strong); border-radius: 10px; min-height: 44px; padding: 0 16px; cursor: pointer; flex: none; }
+  .ck-gig select { font: 600 16px Montserrat, sans-serif; color: var(--fg); background: var(--bg-sunken); border: 1px solid var(--border-strong); border-radius: 8px; padding: 10px; min-height: 48px; }
+  .ck-dots { display: flex; justify-content: center; gap: 14px; padding: 8px 0; }
+  .ck-dots i { width: 18px; height: 18px; border-radius: 50%; border: 2px solid var(--fg-muted); }
+  .ck-dots i.on { background: var(--fg); border-color: var(--fg); }
+  .ck-keys { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 12px; }
+  .ck-keys button { font: 600 30px Montserrat, sans-serif; color: var(--fg); background: var(--bg-raised); border: 1px solid var(--border-strong); border-radius: 14px; min-height: 76px; cursor: pointer; }
+  .ck-keys button.ck-soft { font-size: 17px; color: var(--fg-muted); }
+  .ck-keys button:active { background: var(--surface-hero); }
+  button:focus-visible, select:focus-visible, input:focus-visible, label:focus-within { outline: 3px solid var(--accent); outline-offset: 2px; }
+  .ck-card { background: var(--bg-raised); border-radius: 14px; padding: 20px; display: grid; gap: 14px; }
+  .ck-name { font-size: 34px; font-weight: 700; }
+  .ck-call { font-size: 18px; }
+  .ck-picks { display: grid; gap: 10px; }
+  .ck-pick { font: 600 17px Montserrat, sans-serif; color: var(--fg); background: none; border: 1px solid var(--border-strong); border-radius: 12px; min-height: 56px; padding: 10px 14px; text-align: left; cursor: pointer; }
+  .ck-pick[aria-pressed="true"] { border-color: var(--fg); background: color-mix(in srgb, var(--fg) 14%, transparent); }
+  .ck-pick .sub { display: block; font-weight: 500; font-size: 14px; }
+  .ck-field { font: 500 17px Montserrat, sans-serif; color: var(--fg); background: var(--bg-sunken); border: 1px solid var(--border-strong); border-radius: 10px; padding: 12px; min-height: 52px; width: 100%; box-sizing: border-box; }
+  .ck-photo { display: flex; align-items: center; gap: 14px; flex-wrap: wrap; }
+  .ck-photo img { width: 96px; height: 96px; object-fit: cover; border-radius: 12px; border: 1px solid var(--border-strong); }
+  .ck-btn { font: 700 20px Montserrat, sans-serif; min-height: 64px; border-radius: 14px; border: 1px solid var(--border-strong); background: none; color: var(--fg); cursor: pointer; padding: 0 20px; }
+  .ck-btn.primary { background: var(--v-today); color: #1a1710; border-color: var(--v-today); }
+  /* Light swaps the pair (--v-today is the ink, --v-today-deep the stone): the button is the stone there, or its dark words sat
+     on dark (2026-09-29) */
+  [data-theme="daylight"] .ck-btn.primary { background: var(--v-today-deep); border-color: var(--v-today-deep); }
+  .ck-btn[disabled] { opacity: .45; cursor: default; }
+  label.ck-btn { display: inline-flex; align-items: center; justify-content: center; }
+  .ck-row { display: flex; gap: 12px; flex-wrap: wrap; } .ck-row > * { flex: 1 1 140px; } .ck-row > .primary { flex: 2 1 240px; }
+  .ck-cam { width: 112px; height: 112px; border-radius: 12px; overflow: hidden; background: var(--bg-sunken); border: 1px solid var(--border-strong); flex: none; }
+  .ck-photo > .sub { flex: 1 1 180px; }
+  .ck-cam video { width: 100%; height: 100%; object-fit: cover; transform: scaleX(-1); display: block; }
+  /* 2026-09-29 (Tristan: "not even have to open the camera view and just take a photo automatically"): no preview; the video
+     stays in the page, 2px and unseen, because iOS stops feeding frames to a video that isn't */
+  .ck-cam.hid { position: absolute; width: 2px; height: 2px; opacity: 0; pointer-events: none; border: 0; }
+  .ck-done { cursor: pointer; }
+  .ck-why { text-align: center; margin: 0; }
+  /* the punch landed: readable from a step back, the whole screen (2026-09-29) */
+  .ck-done { text-align: center; padding: 24px 12px; display: grid; gap: 12px; align-content: center; min-height: calc(100vh - 64px); }
+  .ck-done .tick { width: 136px; height: 136px; margin: 0 auto 12px; border-radius: 50%; background: var(--done); position: relative; }
+  .ck-done .tick::after { content: ''; position: absolute; left: 49px; top: 24px; width: 30px; height: 62px; border: solid var(--done-fg); border-width: 0 11px 11px 0; transform: rotate(45deg); }
+  .ck-done .big { font-size: clamp(36px, 9.5vw, 64px); font-weight: 700; font-variant-numeric: tabular-nums; line-height: 1.1; }
+  .ck-done .ck-who { font-size: 30px; font-weight: 700; }
+  .ck-done .ck-call { font-size: 20px; color: var(--fg-muted); }
+  .ck-bad { color: var(--danger); font-size: 18px; text-align: center; min-height: 1.5em; }
+  /* a punch that didn't save (the instant tick's queue gave up): red, on the keypad, until someone taps OK */
+  .ck-failed { display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 12px 14px; border-radius: 12px; border: 2px solid var(--danger); color: var(--fg); font-size: 16px; }
+  .ck-q { color: var(--fg-muted); }
+  .ck-bad.ck-wait { color: var(--fg-muted); }
+  .sr { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
+  @media (prefers-reduced-motion: reduce) { * { transition: none !important; } }
+</style>
+</head>
+<body>
+<script>window.BSI_CLOCK = {"api":"https://script.google.com/macros/s/AKfycbwqyQVGhEKMc4YFw-KLpFeyYXPGiz9-70erdx9bAB_TOZGIv2GsOaoMIbNxLmDhzz5u/exec"};</script>
+<main class="ck" id="ck" aria-live="polite"><div class="sub">Loading the time clock…</div></main>
+<script>
+(function () {
+  const $ = id => document.getElementById(id);
+  const esc = s => String(s == null ? '' : s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+  const DAYS = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'], MONTHS = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+  const t12 = hm => { if (!/^\d\d:\d\d$/.test(hm || '')) return hm || ''; const h = +hm.slice(0, 2), m = hm.slice(3); return (h % 12 || 12) + (m === '00' ? '' : ':' + m) + (h < 12 ? ' AM' : ' PM'); };
+  const store = (k, v) => { try { if (v === undefined) return localStorage.getItem(k); localStorage.setItem(k, v); } catch (e) { return null; } };
+  let device = store('bsi.clockDevice'); if (!device) { device = 'dev-' + Math.random().toString(36).slice(2, 8); store('bsi.clockDevice', device); }
+  // the server, or a fixture in a local preview (tools/ui-preview.js)
+  function call(fn) {
+    const args = Array.prototype.slice.call(arguments, 1), fx = window.UI_USE_FIXTURE && window.UI_FIXTURES && window.UI_FIXTURES[window.UI_USE_FIXTURE];
+    return new Promise((ok, bad) => {
+      if (fx) return setTimeout(() => fx[fn] ? ok(typeof fx[fn] === 'function' ? fx[fn].apply(null, args) : fx[fn]) : bad(new Error('no fixture for ' + fn)), 30);
+      if (window.BSI_CLOCK) return remote(fn, args).then(ok, bad);
+      google.script.run.withSuccessHandler(ok).withFailureHandler(bad)[fn].apply(null, args);
+    });
+  }
+  /** The BSI Clock (2026-09-29, clock/README.md): this page built as a plain page on BSI's GitHub site, where the camera works (an
+   *  Apps Script page can't use it). It can't sign in to Google, so it carries the iPad's key (paired on the Time clock page) to the
+   *  BSI Clock API, which runs the Hub's own kiosk functions (ClockApp.gs clockApi). */
+  function remote(fn, args) {
+    const key = store('bsi.clockKey');
+    if (!key) return Promise.reject(new Error('This iPad isn\'t paired yet. On the Time clock page, Pair an iPad, and open its link here.'));
+    return fetch(window.BSI_CLOCK.api, { method: 'POST', headers: { 'Content-Type': 'text/plain;charset=utf-8' }, body: JSON.stringify({ key: key, fn: fn, args: args }), redirect: 'follow' })
+      .then(r => { if (!r.ok) throw new Error('The BSI Clock couldn\'t reach the office (' + r.status + ').'); return r.json(); })
+      .then(j => { if (!j || j.ok !== true) throw new Error((j && j.error) || 'No answer from the office.'); return j.data; });
+  }
+  if (window.BSI_CLOCK) {   // the pairing link: #pair=<key>, kept on this iPad, then gone from the address bar
+    const pm = location.hash.match(/pair=([a-f0-9]{64})/);
+    if (pm) { store('bsi.clockKey', pm[1]); try { history.replaceState(null, '', location.pathname); } catch (e) { location.hash = ''; } }
+  }
+  const errText = e => (e && e.message) || String(e);
+  const S = { m: null, code: '', who: null, pick: null, project: '', photo: '', busy: false, msg: '', done: null, timer: null };
+  const fx0 = window.UI_USE_FIXTURE && window.UI_FIXTURES && window.UI_FIXTURES[window.UI_USE_FIXTURE];
+  S.ipadGig = null; S.gigOpen = false; S.cam = null; S.camOff = false; S.camStarting = false; S.camDemo = false;
+  if (fx0 && fx0.clockState) Object.assign(S, JSON.parse(JSON.stringify(fx0.clockState)));
+  if (S.ipadGig == null) S.ipadGig = store('bsi.clockGig') || '';
+  function clock() { const d = new Date(); return { time: t12(('0' + d.getHours()).slice(-2) + ':' + ('0' + d.getMinutes()).slice(-2)), date: DAYS[d.getDay()] + ' ' + MONTHS[d.getMonth()] + ' ' + d.getDate() }; }
+  /** This iPad's gig: the one picked for it, else today's only gig. 'shop' = picked "Shop work (no gig)" on purpose. */
+  function ipadGig() { const g = S.m && S.m.gigs || [], saved = S.ipadGig; return saved === 'shop' ? null : g.filter(x => x.gigId === saved)[0] || (g.length === 1 ? g[0] : null); }
+  const VID = document.createElement('video'); VID.muted = true; VID.setAttribute('playsinline', ''); VID.setAttribute('muted', ''); VID.autoplay = true;
+  function camStart() {
+    if (S.cam || S.camOff || S.camStarting || S.camDemo) return;
+    if (!(navigator.mediaDevices && navigator.mediaDevices.getUserMedia)) { S.camOff = true; return; }
+    S.camStarting = true;
+    navigator.mediaDevices.getUserMedia({ video: { facingMode: 'user', width: { ideal: 640 }, height: { ideal: 480 } }, audio: false }).then(st => {
+      S.camStarting = false;
+      if (!S.who) { st.getTracks().forEach(t => t.stop()); return; }   // they left before it started
+      S.cam = st; VID.srcObject = st; draw();
+    }).catch(() => { S.camStarting = false; S.camOff = true; draw(); });   // not allowed here, or no camera: Punch opens the camera instead
+  }
+  function camStop() { if (S.cam) S.cam.getTracks().forEach(t => t.stop()); S.cam = null; VID.srcObject = null; }
+  /** A frame from the live camera, 640 px on the long side, as a JPEG; '' until the camera has a picture. */
+  function camShot() {
+    if (!S.cam || !VID.videoWidth) return '';
+    const k = Math.min(1, 640 / Math.max(VID.videoWidth, VID.videoHeight)), c = document.createElement('canvas');
+    c.width = Math.round(VID.videoWidth * k); c.height = Math.round(VID.videoHeight * k); c.getContext('2d').drawImage(VID, 0, 0, c.width, c.height);
+    return c.toDataURL('image/jpeg', 0.8);
+  }
+  function reset(ms) { clearTimeout(S.timer); S.timer = setTimeout(() => { camStop(); S.code = ''; S.who = null; S.pick = null; S.project = ''; S.photo = ''; S.msg = ''; S.done = null; draw(); }, ms); }
+
+  // ---- the screens ---------------------------------------------------------------------------------------------------------------
+  /** The time, and on the keypad screen the iPad's gig (the 2026-09-29 critique: a settings control on every screen, open to anyone
+   *  passing): one line with Change once it's picked; the list only while nothing is, or after Change. */
+  function topHtml(withGig) {
+    const c = clock(), g = ipadGig(), gigs = (S.m && S.m.gigs) || [], shop = S.ipadGig === 'shop';
+    const top = '<div class="ck-top"><span class="ck-time" id="ckTime">' + c.time + '</span><span class="ck-date">' + c.date + '</span></div>';
+    if (!withGig || !S.m || S.m.kind === 'self') return top;
+    const canChange = gigs.length > (g ? 1 : 0), desk = S.m.kind === 'admin' ? '<span class="sub">Signed in as the desk: this works as the iPad does.</span>' : '';
+    if ((g || shop) && !S.gigOpen) return top + '<div class="ck-gig"><div class="ck-gigline"><span><b>' + (g ? esc(g.gig) : 'Shop work') + '</b><span class="sub">' +
+      (g ? esc([g.day, g.place].filter(Boolean).join(' · ')) + ' · <span class="num">' + g.on + '</span> punched in' : 'no gig on this iPad') + '</span></span>' +
+      (canChange ? '<button type="button" class="ck-change" id="ckGigChange" aria-expanded="false" aria-controls="ckGigPick">Change<span class="sr"> this iPad\'s gig</span></button>' : '') + '</div>' + desk + '</div>';
+    return top + '<div class="ck-gig">' + (g || shop ? '' : '<span class="sub">No gig picked for this iPad yet.</span>') +
+      '<div class="ck-gigline"><label class="sub" for="ckGigPick">This iPad is at</label>' + (g || shop ? '<button type="button" class="ck-change" id="ckGigChange" aria-expanded="true" aria-controls="ckGigPick">Keep it</button>' : '') + '</div>' +
+      '<select id="ckGigPick"><option value="">Pick…</option>' + gigs.map(x => '<option value="' + esc(x.gigId) + '"' + (g && g.gigId === x.gigId ? ' selected' : '') + '>' + esc(x.gig) + '</option>').join('') +
+      '<option value="shop"' + (shop ? ' selected' : '') + '>Shop work (no gig)</option></select>' + desk + '</div>';
+  }
+  function keypadHtml() {
+    const dots = '<div class="ck-dots" aria-label="' + S.code.length + ' of 6 digits">' + [0, 1, 2, 3, 4, 5].map(i => '<i class="' + (i < S.code.length ? 'on' : '') + '"></i>').join('') + '</div>';
+    const k = n => '<button type="button" data-key="' + n + '" aria-label="' + n + '">' + n + '</button>';
+    const failed = (S.failed || []).map((f, i) => '<div class="ck-failed" role="alert"><span><b>' + esc(f.who) + '</b>\'s punch ' + esc(f.dir) + ' at ' + t12(String(f.at).slice(11)) + ' didn\'t save: ' + esc(f.why) +
+      ' Tell the office.</span><button type="button" class="ck-change" data-failok="' + i + '">OK</button></div>').join('');
+    const waiting = Q.filter(x => x.kind === 'punch').length;
+    return failed + '<h1 class="sr">Time clock</h1><p class="sub" style="text-align:center;margin:0">Type your TimeClock ID' + (waiting ? ' <span class="ck-q">· ' + waiting + ' punch' + (waiting === 1 ? '' : 'es') + ' still sending</span>' : '') + '</p>' + dots + (S.busy ? '<div class="ck-bad ck-wait" role="status">Checking…</div>' : '<div class="ck-bad" role="alert">' + esc(S.msg) + '</div>') +
+      '<div class="ck-keys">' + [1, 2, 3, 4, 5, 6, 7, 8, 9].map(k).join('') + '<button type="button" class="ck-soft" data-key="clear">Clear</button>' + k(0) + '<button type="button" class="ck-soft" data-key="back" aria-label="Delete a digit">Delete</button></div>';
+  }
+  /** Where someone can punch in: their calls today, then the iPad's gig and the other gigs today, Shop work, a typed project. */
+  function optsOf(calls) {
+    const g = ipadGig(), gigs = (S.m && S.m.gigs) || [], mine = calls.map(c => c.gigId);
+    return calls.map(c => ({ gigId: c.gigId, label: c.gig, sub: c.role + ' · called ' + t12(c.call) }))
+      .concat(gigs.filter(x => mine.indexOf(x.gigId) === -1).sort((x, y) => (g && y.gigId === g.gigId ? 1 : 0) - (g && x.gigId === g.gigId ? 1 : 0)).map(x => ({ gigId: x.gigId, label: x.gig, sub: 'not on your call' })))
+      .concat([{ gigId: 'shop', label: 'Shop work', sub: '' }, { project: '', label: 'A project', sub: 'type its name' }]);
+  }
+  function pickHtml(calls) {
+    const g = ipadGig(), mine = calls.map(c => c.gigId), opts = optsOf(calls);
+    if (!S.pick) S.pick = calls.length === 1 ? { gigId: calls[0].gigId } : g && mine.indexOf(g.gigId) > -1 ? { gigId: g.gigId } : null;
+    const on = o => !!S.pick && (o.project !== undefined ? S.pick.project !== undefined : S.pick.project === undefined && S.pick.gigId === o.gigId);
+    return '<div class="ck-picks" role="group" aria-label="Which gig">' + opts.map((o, i) => '<button type="button" class="ck-pick" data-pick="' + i + '" aria-pressed="' + on(o) + '">' + esc(o.label) + (o.sub ? '<span class="sub">' + esc(o.sub) + '</span>' : '') + '</button>').join('') + '</div>' +
+      (S.pick && S.pick.project !== undefined ? '<label class="sr" for="ckProject">Project name</label><input class="ck-field" id="ckProject" placeholder="Project name (for billing shop work)" maxlength="80" value="' + esc(S.project) + '">' : '');
+  }
+  /** The name card. Someone already in sees Punch out straight away; nobody is asked for a photo first (Tristan 2026-09-29: "the
+   *  photo should be automatic, that's how Homebase is"): the camera runs while the card is up and the photo is taken as Punch is
+   *  pressed. Where the camera can't run live, Punch opens it, and taking the photo punches. */
+  function whoHtml() {
+    const w = S.who, self = S.m.kind === 'self', inNow = !!w.open, needPhoto = !self;
+    const calls = w.calls || [], c0 = calls[0];
+    const picked = inNow || (S.pick && (S.pick.gigId || (S.pick.project !== undefined && S.project.trim())));
+    const why = picked || S.busy ? '' : S.pick && S.pick.project !== undefined ? 'Type the project\'s name first.' : 'Pick where you\'re working first.';
+    const word = S.busy ? 'Saving…' : inNow ? 'Punch out' : 'Punch in', live = needPhoto && (S.cam || S.camDemo || S.camStarting), byLabel = needPhoto && !S.cam && !S.camDemo && S.camOff;
+    const punchBtn = byLabel && picked && !S.busy
+      ? '<label class="ck-btn primary" id="ckPunchCam">' + word + '<input class="sr" id="ckCam" type="file" accept="image/*" capture="user"></label>'
+      : '<button type="button" class="ck-btn primary" id="ckPunch"' + (picked && !S.busy && (!needPhoto || live || byLabel) ? '' : ' disabled') + (why ? ' aria-describedby="ckWhy"' : '') + '>' + word + '</button>';
+    return '<div class="ck-card"><div class="ck-name">' + esc(self ? 'Hi ' + w.person.first : w.person.short) + '</div>' +
+      (inNow ? '<div class="ck-call">In since ' + t12(w.open.in.slice(11)) + ' · ' + esc(w.open.gig) + '</div>' : c0 ? '<div class="ck-call">' + calls.map(c => esc(c.gig) + ' · ' + esc(c.role) + ' · called ' + t12(c.call)).join('<br>') + '</div>' : '<div class="ck-call sub">Not on today\'s call. Pick where you\'re working.</div>') +
+      (inNow ? '' : pickHtml(calls)) +
+      (needPhoto ? '<div class="ck-photo">' + (byLabel ? '<span class="sub">' + word + ' opens the camera: take the photo and you\'re punched ' + (inNow ? 'out' : 'in') + '.</span>'
+        : '<div class="ck-cam hid" id="ckCamSlot" aria-hidden="true"></div><span class="sub">Your photo is taken as you punch, so the office knows it was you.</span>') + '</div>' : '') +
+      '<div class="ck-bad" role="alert">' + esc(S.msg) + '</div>' +
+      (why ? '<p class="sub ck-why" id="ckWhy">' + why + '</p>' : '') +
+      '<div class="ck-row">' + punchBtn + (self ? '' : '<button type="button" class="ck-btn" id="ckCancel">Not me</button>') + '</div></div>';
+  }
+  function selfHtml() {
+    const me = S.m.me;
+    if (!me.phone) return '<div class="ck-card"><div class="ck-name">Hi ' + esc(me.name.split(' ')[0]) + '</div>' + (me.calls[0] ? '<div class="ck-call">' + me.calls.map(c => esc(c.gig) + ' · ' + esc(c.role) + ' · called ' + t12(c.call)).join('<br>') + '</div>' : '') + '<div class="ck-call">You punch in on the gig iPad with your TimeClock ID.</div></div>';
+    S.who = S.who || { person: { first: me.name.split(' ')[0] }, open: me.open, calls: me.calls };
+    return whoHtml();
+  }
+  function doneHtml() { return '<div class="ck-done" role="status"><div class="tick" aria-hidden="true"></div><div class="big">' + esc(S.done.direction === 'in' ? 'In at ' : 'Out at ') + t12(S.done.at.slice(11)) + '</div><div class="ck-who">' + esc(S.done.person) + '</div><div class="ck-call">' + esc(S.done.gig) + '</div></div>'; }
+  function draw() {
+    const el = $('ck');
+    if (!S.m) return;
+    if (VID.parentNode) VID.parentNode.removeChild(VID);
+    el.innerHTML = S.done ? doneHtml() : topHtml(!S.who) + (S.m.kind === 'self' ? selfHtml() : S.who ? whoHtml() : keypadHtml());
+    const slot = $('ckCamSlot'); if (slot && S.cam) { slot.appendChild(VID); VID.play().catch(() => {}); }
+    if (S.who && !S.done && S.m.kind !== 'self') camStart();
+  }
+
+  // ---- what taps do ----------------------------------------------------------------------------------------------------------------
+  document.addEventListener('click', e => {
+    const b = e.target.closest && e.target.closest('button'); if (!b) return;
+    if (b.dataset.key) { key(b.dataset.key); return; }
+    if (b.dataset.failok != null) { S.failed.splice(+b.dataset.failok, 1); qSave(); draw(); return; }
+    if (b.id === 'ckGigChange') { S.gigOpen = !S.gigOpen; draw(); const x = $(S.gigOpen ? 'ckGigPick' : 'ckGigChange'); if (x) x.focus(); return; }
+    if (b.dataset.pick != null) { reset(60000); const o = optsOf(S.who.calls || [])[+b.dataset.pick]; S.pick = o.project !== undefined ? { project: '' } : { gigId: o.gigId }; draw(); if (o.project !== undefined) { const i = $('ckProject'); if (i) i.focus(); } return; }
+    if (b.id === 'ckCancel') { camStop(); reset(0); return; }
+    if (b.id === 'ckPunch') punch();
+  });
+  document.addEventListener('input', e => {
+    if (e.target.id !== 'ckProject') return;
+    const had = !!S.project.trim(); S.project = e.target.value; reset(60000);
+    if (had !== !!S.project.trim()) { draw(); const f = $('ckProject'); if (f) { f.focus(); f.setSelectionRange(f.value.length, f.value.length); } }   // Punch wakes (or sleeps) with the name
+  });
+  document.addEventListener('change', e => {
+    if (e.target.id === 'ckGigPick') { S.ipadGig = e.target.value; store('bsi.clockGig', e.target.value); if (e.target.value) S.gigOpen = false; draw(); }
+    if (e.target.id === 'ckCam' && e.target.files && e.target.files[0]) shrink(e.target.files[0]).then(u => { S.photo = u; S.msg = ''; if (S.who) { reset(60000); punch(); } else draw(); }).catch(() => { S.msg = 'That photo couldn\'t be read. Take it again.'; draw(); });
+  });
+  function doneAway() { if (!S.done) return; clearTimeout(S.timer); camStop(); S.code = ''; S.who = null; S.pick = null; S.project = ''; S.photo = ''; S.msg = ''; S.done = null; draw(); }
+  document.addEventListener('click', e => { if (S.done && e.target.closest && e.target.closest('.ck-done')) doneAway(); });
+  document.addEventListener('keydown', e => { if (S.done && /^\d$/.test(e.key) && S.m && S.m.kind !== 'self') doneAway();
+    if (S.who || S.done || (S.m && S.m.kind === 'self')) return; if (/^\d$/.test(e.key)) key(e.key); else if (e.key === 'Backspace') key('back'); else if (e.key === 'Escape') key('clear'); });
+  function key(k) {
+    if (S.busy) return;
+    clearTimeout(S.timer);
+    if (k === 'clear') S.code = ''; else if (k === 'back') S.code = S.code.slice(0, -1); else if (S.code.length < 6) S.code += k;
+    S.msg = ''; draw();
+    if (S.code.length === 6) { S.busy = true; draw(); lookup(S.code).then(r => { S.busy = false;
+      if (!r.ok) { S.msg = r.error; S.code = ''; draw(); reset(3000); return; }
+      S.who = r; draw(); reset(60000); }).catch(err => { S.busy = false; S.msg = errText(err); S.code = ''; draw(); }); }
+  }
+  /** Who a code is: from the model's table on the spot (the server's clockModel, hashed with its salt); otherwise the server. */
+  function lookup(code) {
+    const m = S.m, sub = window.crypto && window.crypto.subtle;
+    if (!m || !m.codes || !m.salt || !sub || !window.TextEncoder) return call('clockLookup', code, device);
+    return sub.digest('SHA-256', new TextEncoder().encode(m.salt + code)).then(b => {
+      const h = Array.from(new Uint8Array(b)).map(x => ('0' + x.toString(16)).slice(-2)).join(''), x = m.codes[h];
+      return x ? { ok: true, person: { first: x.first, short: x.short }, open: x.open, calls: x.calls, h: h } : call('clockLookup', code, device);
+    }).catch(() => call('clockLookup', code, device));
+  }
+  /** The camera's frame, waiting up to 3 s for the first one (pressed the instant the card came up). */
+  function shotSoon() {
+    return new Promise(ok => { const t0 = Date.now(); (function tick() { const u = camShot(); if (u || !(S.cam || S.camStarting) || Date.now() - t0 > 3000) ok(u); else setTimeout(tick, 100); })(); });
+  }
+  /** Punch (2026-09-29, Tristan: "it sits on the saving page for a good sec"): the tick shows AT ONCE, from what the page already
+   *  knows (in or out, the gig), and the punch goes in the queue behind it, with an op id so a retry never punches twice. The
+   *  photo follows its punch. A punch that finally fails says so to the next person, in red, until someone taps OK. */
+  function punch() {
+    if (S.busy) return;
+    const kiosk = S.m.kind !== 'self';
+    S.busy = true; S.msg = ''; draw();
+    (kiosk && !S.photo ? shotSoon() : Promise.resolve(S.photo)).then(photo => {
+      if (kiosk && !photo) { S.busy = false; S.msg = 'No photo: the camera isn\'t working here.'; draw(); return; }
+      const w = S.who, out = !!w.open, calls = w.calls || [];
+      const pick = out ? {} : S.pick && S.pick.project !== undefined ? { project: S.project.trim() } : { gigId: S.pick ? S.pick.gigId : '' };
+      const gigName = out ? w.open.gig : pick.project !== undefined ? pick.project : pick.gigId === 'shop' ? 'Shop work'
+        : ((calls.filter(c => c.gigId === pick.gigId)[0] || ((S.m.gigs || []).filter(g => g.gigId === pick.gigId)[0]) || calls[0] || {}).gig || 'Shop work');
+      const at = nowStamp(), op = 'op-' + Date.now().toString(36) + '-' + Math.random().toString(36).slice(2, 8);
+      qAdd({ kind: 'punch', op: op, code: kiosk ? S.code : '', pick: pick, photo: kiosk ? photo : (photo || ''), who: w.person.short || w.person.first, dir: out ? 'out' : 'in', at: at, tries: 0 });
+      if (w.h && S.m.codes && S.m.codes[w.h]) S.m.codes[w.h].open = out ? null : { in: at, gig: gigName };   // this iPad knows at once
+      S.busy = false; S.done = { direction: out ? 'out' : 'in', at: at, person: w.person.short || w.person.first, gig: gigName };
+      S.who = null; camStop(); draw(); reset(3000);
+    });
+  }
+  const nowStamp = () => { const d = new Date(), p = n => ('0' + n).slice(-2); return d.getFullYear() + '-' + p(d.getMonth() + 1) + '-' + p(d.getDate()) + ' ' + p(d.getHours()) + ':' + p(d.getMinutes()); };
+  /** The queue: punches and photos on their way, one at a time, kept on this iPad (a reload or a dropped connection loses
+   *  nothing). A refusal the office must hear about (not on the roster, paired no more…) or 8 failed tries = a failed punch. */
+  const QK = 'bsi.clockQueue', FK = 'bsi.clockFailed';
+  let Q = []; try { Q = JSON.parse(store(QK) || '[]'); if (!Array.isArray(Q)) Q = []; } catch (e) { Q = []; }
+  S.failed = []; try { S.failed = JSON.parse(store(FK) || '[]'); if (!Array.isArray(S.failed)) S.failed = []; } catch (e) { S.failed = []; }
+  if (fx0 && fx0.clockState && Array.isArray(fx0.clockState.failed)) S.failed = fx0.clockState.failed;   // a preview's
+  let qBusy = false;
+  function qSave() {
+    try { localStorage.setItem(QK, JSON.stringify(Q)); } catch (e) { try { localStorage.setItem(QK, JSON.stringify(Q.map(x => Object.assign({}, x, { photo: '' })))); } catch (e2) { /* memory only */ } }
+    store(FK, JSON.stringify(S.failed.slice(-20)));
+  }
+  function qAdd(x) { Q.push(x); qSave(); qNext(); }
+  const FINAL = /isn't on the roster|Pick the gig|Too many wrong codes|isn't paired|switched off|Take the photo|isn't yours|too old|isn't a punch|couldn't be read|Not allowed|punch from your own/i;
+  function qNext() {
+    if (qBusy || !Q.length) return;
+    const x = Q[0]; qBusy = true;
+    const go = x.kind === 'punch' ? call('clockPunch', x.code, x.pick, x.photo && x.code ? 'later' : x.photo, device, x.op) : call('clockPunchPhoto', x.code, x.id, x.dir, x.photo, device);
+    go.then(r => {
+      Q.shift();
+      if (x.kind === 'punch' && x.photo && x.code && r && r.id) Q.unshift({ kind: 'photo', code: x.code, id: r.id, dir: r.direction, photo: x.photo, who: x.who, tries: 0 });
+      qBusy = false; qSave();
+      if (x.kind === 'punch') call('clockModel', device).then(m => { S.m = m; if (!S.who && !S.done) draw(); }).catch(() => {});
+      qNext();
+    }).catch(err => {
+      qBusy = false; x.tries++;
+      const why = errText(err);
+      if (FINAL.test(why) || x.tries >= 8) {
+        Q.shift();
+        if (x.kind === 'punch') S.failed.push({ who: x.who, dir: x.dir, at: x.at, why: why });
+        else if (window.console) console.warn('punch photo not saved', x.id, why);
+        qSave(); if (!S.who && !S.done) draw(); qNext();
+      } else { qSave(); setTimeout(qNext, Math.min(30000, 3000 * x.tries)); }
+    });
+  }
+  window.addEventListener('online', () => { qBusy = false; qNext(); });
+  /** The photo, shrunk to 640 px on the long side as a JPEG (the server takes at most about 1.5 MB). */
+  function shrink(file) { return new Promise((ok, bad) => { const url = URL.createObjectURL(file), img = new Image();
+    img.onload = () => { const k = Math.min(1, 640 / Math.max(img.width, img.height)), c = document.createElement('canvas'); c.width = Math.round(img.width * k); c.height = Math.round(img.height * k); c.getContext('2d').drawImage(img, 0, 0, c.width, c.height); URL.revokeObjectURL(url); ok(c.toDataURL('image/jpeg', 0.8)); };
+    img.onerror = () => { URL.revokeObjectURL(url); bad(new Error('unreadable')); }; img.src = url; }); }
+
+  setInterval(() => { const t = $('ckTime'); if (t) t.textContent = clock().time; }, 15000);
+  setInterval(() => { if (!S.who && !S.done && !S.busy) call('clockModel', device).then(m => { S.m = m; draw(); }).catch(() => {}); }, 120000);
+  call('clockModel', device).then(m => { S.m = m; draw(); qNext(); }).catch(err => { $('ck').innerHTML = '<div class="ck-card"><div class="ck-name">The time clock can\'t open</div><div class="ck-call">' + esc(errText(err)) + '</div></div>'; });
+})();
+</script>
+</body>
+</html>
