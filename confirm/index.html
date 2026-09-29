@@ -1,0 +1,55 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#0A0B0D">
+<meta name="robots" content="noindex">
+<meta name="referrer" content="no-referrer">
+<title>BSI Production · your call</title>
+<link rel="icon" href="/favicon.ico" sizes="any">
+<link rel="icon" type="image/png" sizes="32x32" href="/icons/icon-32.png">
+<link rel="apple-touch-icon" href="/icons/icon-180.png">
+<style>
+  :root { --bg: #0A0B0D; --fg: #F1F2F3; --muted: #A9AFB6; --raised: #2F3135; --link: #7FB4EA; }
+  html, body { margin: 0; height: 100%; background: var(--bg); color: var(--fg); overflow: hidden; }
+  iframe { position: fixed; inset: 0; width: 100%; height: 100%; border: 0; background: var(--bg); opacity: 0; transition: opacity .2s; }
+  iframe.ready { opacity: 1; }
+  #loader { position: fixed; inset: 0; display: flex; flex-direction: column; align-items: center; justify-content: center;
+    padding: 0 16px; color: var(--fg); font: 500 15px/1.5 Montserrat, system-ui, -apple-system, sans-serif; text-align: center; }
+  #loader img { width: 200px; max-width: 70vw; height: auto; margin-bottom: 24px; }
+  #loader .bar { width: 160px; height: 3px; border-radius: 2px; background: var(--raised); overflow: hidden; margin: 14px 0 0; }
+  #loader .bar i { display: block; width: 40%; height: 100%; border-radius: 2px; background: var(--fg); animation: slide 1.2s ease-in-out infinite; }
+  @keyframes slide { from { transform: translateX(-100%); } to { transform: translateX(250%); } }
+  @media (prefers-reduced-motion: reduce) { #loader .bar i { animation-duration: 3s; } }
+  #loader .slow { color: var(--muted); font-size: 13px; max-width: 320px; margin-top: 18px; min-height: 40px; }
+  #loader a { color: var(--link); text-decoration: none; }
+  #loader.done { display: none; }
+</style>
+</head>
+<body>
+<div id="loader" role="status">
+  <img src="/icons/lockup-white.svg" alt="BSI Production">
+  <div>Loading your call…</div>
+  <div class="bar" aria-hidden="true"><i></i></div>
+  <div class="slow" id="slow"></div>
+</div>
+<!-- The crew's Confirm / Can't make it page (bsi-shop-systems/crewconfirm, 2026-09-29): the email's button lands here as
+     /confirm/?t=<token>, and the confirm web app runs inside, so the address bar stays bsiproduction.github.io. The app needs
+     no Google sign-in (access Anyone), so the frame works in Safari too. Only the token is passed on. -->
+<script>
+  var APP = 'https://script.google.com/macros/s/AKfycbypUwp2NADxPLl_sZUEhd5EA-7SeTo94hdNF4DMNqu0J4f549WC7S4Tz_uhTWlZ30LE/exec';
+  var t = (new URLSearchParams(location.search).get('t') || '').toLowerCase();
+  var TARGET = APP + (/^[a-f0-9]{40}$/.test(t) ? '?t=' + t : '');
+  var slow = document.getElementById('slow');
+  setTimeout(function () { slow.textContent = 'Still loading. It can take a few seconds on a slow connection.'; }, 8000);
+  setTimeout(function () { slow.innerHTML = 'Still loading. <a href="' + TARGET + '">Open it directly</a>'; }, 20000);
+  var f = document.createElement('iframe');
+  f.title = 'Your call';
+  f.onload = function () { f.className = 'ready'; document.getElementById('loader').className = 'done'; };
+  f.src = TARGET;
+  document.body.appendChild(f);
+</script>
+<noscript><a href="https://script.google.com/macros/s/AKfycbypUwp2NADxPLl_sZUEhd5EA-7SeTo94hdNF4DMNqu0J4f549WC7S4Tz_uhTWlZ30LE/exec" style="color:#F1F2F3">Open your call</a></noscript>
+</body>
+</html>
