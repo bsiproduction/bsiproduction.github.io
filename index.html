@@ -75,6 +75,7 @@
   }
 </script>
 <noscript><a href="https://script.google.com/a/macros/bsiproduction.com/s/AKfycbxU4dP5Pcshs_bNFCrWA14lU9Y85dZ4vX0VCn18IpWwaDOOUrm28rGKz6u4m5XyA8dT/exec" style="color:#F1F2F3">Open ShopCall</a></noscript>
+<script src="/scan/pick.js"></script>
 <div id="cam" aria-hidden="true"><video id="camv" playsinline muted autoplay></video><i></i></div>
 <script>
   // ShopCall's Scan view camera (2026-10-02, Tristan: "the camera visible in that scan view without opening a secondary camera view").
@@ -90,17 +91,18 @@
     function read() {
       if (!v.srcObject) return;
       if (v.readyState >= 2 && v.videoWidth) {
-        if (detector) { detector.detect(v).then(function (c) { if (c && c[0] && c[0].rawValue) got(String(c[0].rawValue).trim()); }).catch(function () {}).then(function () { setTimeout(read, 120); }); return; }
+        if (detector) { detector.detect(v).then(function (c) { frameCodes(BsiPick.fromDetector(c, v.videoWidth, v.videoHeight)); }).catch(function () {}).then(function () { setTimeout(read, 120); }); return; }
         if (window.jsQR) {
           var w = v.videoWidth, h = v.videoHeight, s = Math.min(1, 720 / Math.max(w, h)); cv.width = Math.round(w * s); cv.height = Math.round(h * s);
           cx.drawImage(v, 0, 0, cv.width, cv.height); var img = cx.getImageData(0, 0, cv.width, cv.height), code = jsQR(img.data, img.width, img.height, { inversionAttempts: 'dontInvert' });
-          if (code && code.data) got(String(code.data).trim());
+          frameCodes(BsiPick.fromJsQr(code, img.width, img.height));
         }
       }
       setTimeout(read, 120);
     }
-    // a code held in view is one scan; it counts again once it has left the frame for 2 s
-    function got(t) { var now = Date.now(); if (t === last.t && now - last.at < 2000) { last.at = now; return; } last = { t: t, at: now }; post({ bsi: 'scan', text: t.slice(0, 500) }); }
+    // which code a frame means (scan/pick.js): nearest the middle, steady, once while in view, one at a time
+    var pk = BsiPick.picker();
+    function frameCodes(codes) { var t = pk.frame(codes, Date.now()); if (t) post({ bsi: 'scan', text: t.slice(0, 500) }); }
     function start() {
       if (starting || v.srcObject) return; starting = true;
       if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) { starting = false; return post({ bsi: 'cam-error', what: 'This browser can\'t use the camera. Type the code below.' }); }
@@ -127,7 +129,7 @@
       if (d.bsi === 'cam-hello') return post({ bsi: 'cam-ready' });
       if (d.bsi === 'cam-box') { seen = Date.now(); place(d); start(); }
       if (d.bsi === 'cam-off') { seen = 0; stop(); }
-      if (d.bsi === 'scan-result') { box.className = 'on ' + (d.bad ? 'bad' : 'ok'); clearTimeout(flashT); flashT = setTimeout(function () { if (v.srcObject) box.className = 'on'; }, 900);
+      if (d.bsi === 'scan-result') { pk.answered(); box.className = 'on ' + (d.bad ? 'bad' : 'ok'); clearTimeout(flashT); flashT = setTimeout(function () { if (v.srcObject) box.className = 'on'; }, 900);
         if (navigator.vibrate) { try { navigator.vibrate(d.bad ? [60, 60, 60] : 40); } catch (x) {} } }
     });
     setInterval(function () { if (seen && Date.now() - seen > 1500) { seen = 0; stop(); } }, 500);

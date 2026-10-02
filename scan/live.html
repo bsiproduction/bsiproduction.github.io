@@ -38,6 +38,7 @@
 <div class="frame" id="frame" aria-hidden="true"></div>
 <div class="top"><div class="what" id="what">Scan</div><button type="button" id="done">Done</button></div>
 <div class="card" id="card" role="status" aria-live="polite"><div class="t" id="t">Starting the camera…</div><div class="w" id="w"></div><div class="n" id="n"></div></div>
+<script src="/scan/pick.js"></script>
 <script>
   // ShopCall's pages are served from Google's user-content domain; a message from anywhere else is ignored
   var SHOPCALL = /^https:\/\/[a-z0-9-]+-script\.googleusercontent\.com$/;
@@ -59,7 +60,7 @@
     shop = e.source;
     if (d.bsi === 'scan-mode') { $('what').textContent = String(d.title || 'Scan').slice(0, 120); if (!waiting && !n) show('', String(d.hint || 'Point at a code').slice(0, 200), ''); }
     if (d.bsi === 'scan-result') {
-      waiting = 0; n++;
+      waiting = 0; n++; pk.answered();
       show(d.bad ? 'bad' : 'ok', String(d.title || '').slice(0, 120), String(d.what || '').slice(0, 300));
       $('n').textContent = d.typing ? 'Type the number in ShopCall.' : '';
       flash(d.bad ? 'bad' : 'ok');
@@ -68,10 +69,11 @@
     if (d.bsi === 'scan-close') closeMe();
   });
 
+  // which code a frame means: scan/pick.js (nearest the middle, steady, once while in view, one at a time)
+  var pk = BsiPick.picker();
+  function frameCodes(codes) { var t = pk.frame(codes, Date.now()); if (t) got(t); }
   function got(text) {
     var now = Date.now();
-    if (text === last.text && now - last.at < 2000) { last.at = now; return; }   // the same code held in view is one scan; again once it has left the frame 2 s
-    last = { text: text, at: now };
     if (!opener || opener.closed) { show('bad', 'ShopCall isn\'t open', 'Open Scan in ShopCall again; it opens this camera.'); return; }
     waiting = now; show('', 'Saving…', ''); flash('ok');
     if (!send({ bsi: 'scan', text: text.slice(0, 500) })) show('bad', 'Couldn\'t reach ShopCall', 'Open Scan in ShopCall again.');
@@ -81,7 +83,7 @@
     if (!v.srcObject) return;
     if (v.readyState >= 2 && v.videoWidth) {
       if (detector) {
-        detector.detect(v).then(function (codes) { if (codes && codes[0] && codes[0].rawValue) got(String(codes[0].rawValue).trim()); }).catch(function () {}).then(function () { setTimeout(tick, 120); });
+        detector.detect(v).then(function (codes) { frameCodes(BsiPick.fromDetector(codes, v.videoWidth, v.videoHeight)); }).catch(function () {}).then(function () { setTimeout(tick, 120); });
         return;
       }
       if (window.jsQR) {
@@ -89,7 +91,7 @@
         c.width = Math.round(w * s); c.height = Math.round(h * s);
         ctx.drawImage(v, 0, 0, c.width, c.height);
         var img = ctx.getImageData(0, 0, c.width, c.height), code = jsQR(img.data, img.width, img.height, { inversionAttempts: 'dontInvert' });
-        if (code && code.data) got(String(code.data).trim());
+        frameCodes(BsiPick.fromJsQr(code, img.width, img.height));
       }
     }
     setTimeout(tick, 120);
