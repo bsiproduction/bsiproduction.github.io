@@ -70,7 +70,7 @@
 
   function got(text) {
     var now = Date.now();
-    if (text === last.text && now - last.at < 3000) return;   // the same code held in view is one scan
+    if (text === last.text && now - last.at < 2000) { last.at = now; return; }   // the same code held in view is one scan; again once it has left the frame 2 s
     last = { text: text, at: now };
     if (!opener || opener.closed) { show('bad', 'ShopCall isn\'t open', 'Open Scan in ShopCall again; it opens this camera.'); return; }
     waiting = now; show('', 'Saving…', ''); flash('ok');

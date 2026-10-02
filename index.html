@@ -28,6 +28,15 @@
   #loader .slow { color: var(--muted); font-size: 13px; max-width: 320px; margin-top: 18px; min-height: 40px; }
   #loader a { color: var(--link); text-decoration: none; }
   #loader.done { display: none; }
+  /* ShopCall's Scan view camera (2026-10-02): Google's frame never gets the camera, this page does. The Scan view says where its camera
+     box is; the live video is drawn right over it, so the camera is in the Scan view. Touches pass through to ShopCall. */
+  #cam { position: fixed; z-index: 5; display: none; overflow: hidden; border-radius: 10px; background: #000; pointer-events: none; transition: box-shadow .15s; }
+  #cam.on { display: block; } #cam.ok { box-shadow: inset 0 0 0 4px #4FC38A; } #cam.bad { box-shadow: inset 0 0 0 4px #E5675B; }
+  #cam video { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; }
+  #cam i { position: absolute; left: 50%; top: 50%; width: 62%; aspect-ratio: 1; max-height: 86%; transform: translate(-50%, -50%);
+    background: linear-gradient(#F1F2F3,#F1F2F3) 0 0/22px 3px, linear-gradient(#F1F2F3,#F1F2F3) 0 0/3px 22px, linear-gradient(#F1F2F3,#F1F2F3) 100% 0/22px 3px, linear-gradient(#F1F2F3,#F1F2F3) 100% 0/3px 22px,
+      linear-gradient(#F1F2F3,#F1F2F3) 0 100%/22px 3px, linear-gradient(#F1F2F3,#F1F2F3) 0 100%/3px 22px, linear-gradient(#F1F2F3,#F1F2F3) 100% 100%/22px 3px, linear-gradient(#F1F2F3,#F1F2F3) 100% 100%/3px 22px;
+    background-repeat: no-repeat; }
 </style>
 </head>
 <body>
@@ -66,5 +75,66 @@
   }
 </script>
 <noscript><a href="https://script.google.com/a/macros/bsiproduction.com/s/AKfycbxU4dP5Pcshs_bNFCrWA14lU9Y85dZ4vX0VCn18IpWwaDOOUrm28rGKz6u4m5XyA8dT/exec" style="color:#F1F2F3">Open ShopCall</a></noscript>
+<div id="cam" aria-hidden="true"><video id="camv" playsinline muted autoplay></video><i></i></div>
+<script>
+  // ShopCall's Scan view camera (2026-10-02, Tristan: "the camera visible in that scan view without opening a secondary camera view").
+  // The Scan view (hub/ScanUi.html) asks cam-hello; this page answers cam-ready, then follows its cam-box reports (where the box is,
+  // what the pinned bars cover) and draws the live camera there. Each code read goes down to the Scan view, which saves it as the
+  // tech's own account and answers scan-result (the box flashes). No report for 1.5 s (a reload, another view) = the camera stops.
+  (function () {
+    var GUC = /^https:\/\/[a-z0-9-]+-script\.googleusercontent\.com$/;
+    var box = document.getElementById('cam'), v = document.getElementById('camv'), shop = null, origin = '*', starting = false, seen = 0, flashT = 0, detector = null;
+    var cv = document.createElement('canvas'), cx = cv.getContext('2d', { willReadFrequently: true }), last = { t: '', at: 0 };
+    function post(m) { if (shop) { m.via = 'shell'; try { shop.postMessage(m, origin); } catch (e) {} } }
+    function stop() { try { (v.srcObject && v.srcObject.getTracks() || []).forEach(function (t) { t.stop(); }); } catch (e) {} v.srcObject = null; box.className = ''; starting = false; }
+    function read() {
+      if (!v.srcObject) return;
+      if (v.readyState >= 2 && v.videoWidth) {
+        if (detector) { detector.detect(v).then(function (c) { if (c && c[0] && c[0].rawValue) got(String(c[0].rawValue).trim()); }).catch(function () {}).then(function () { setTimeout(read, 120); }); return; }
+        if (window.jsQR) {
+          var w = v.videoWidth, h = v.videoHeight, s = Math.min(1, 720 / Math.max(w, h)); cv.width = Math.round(w * s); cv.height = Math.round(h * s);
+          cx.drawImage(v, 0, 0, cv.width, cv.height); var img = cx.getImageData(0, 0, cv.width, cv.height), code = jsQR(img.data, img.width, img.height, { inversionAttempts: 'dontInvert' });
+          if (code && code.data) got(String(code.data).trim());
+        }
+      }
+      setTimeout(read, 120);
+    }
+    // a code held in view is one scan; it counts again once it has left the frame for 2 s
+    function got(t) { var now = Date.now(); if (t === last.t && now - last.at < 2000) { last.at = now; return; } last = { t: t, at: now }; post({ bsi: 'scan', text: t.slice(0, 500) }); }
+    function start() {
+      if (starting || v.srcObject) return; starting = true;
+      if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) { starting = false; return post({ bsi: 'cam-error', what: 'This browser can\'t use the camera. Type the code below.' }); }
+      navigator.mediaDevices.getUserMedia({ video: { facingMode: { ideal: 'environment' } }, audio: false }).then(function (st) {
+        starting = false; if (Date.now() - seen > 1500) { st.getTracks().forEach(function (t) { t.stop(); }); return; }
+        v.srcObject = st; v.play().catch(function () {}); read();
+      }).catch(function (err) {
+        starting = false; var no = err && (err.name === 'NotAllowedError' || err.name === 'SecurityError');
+        post({ bsi: 'cam-error', what: no ? 'The camera is blocked: allow it for bsiproduction.github.io in the browser\'s site settings.' : 'The camera didn\'t start (' + (err && err.name || 'unknown') + ').' });
+      });
+    }
+    function place(d) {
+      var f = document.querySelector('iframe'); if (!f) return;
+      var fr = f.getBoundingClientRect(), dy = fr.top + Math.max(0, fr.height - (+d.vh || fr.height)), dx = fr.left;   // a banner above Google's page, if any
+      var x = +d.x + dx, y = +d.y + dy, w = +d.w, h = +d.h, top = +d.clipTop + dy, bot = +d.clipBottom + dy;
+      if (!(w > 0 && h > 0)) return;
+      box.style.left = x + 'px'; box.style.top = y + 'px'; box.style.width = w + 'px'; box.style.height = h + 'px';
+      box.style.clipPath = 'inset(' + Math.max(0, top - y) + 'px 0 ' + Math.max(0, y + h - bot) + 'px 0 round 10px)';
+      if (box.className.indexOf('on') === -1) box.className = 'on';
+    }
+    window.addEventListener('message', function (e) {
+      var d = e.data || {}; if (!GUC.test(e.origin) || typeof d.bsi !== 'string') return;
+      shop = e.source; origin = e.origin;
+      if (d.bsi === 'cam-hello') return post({ bsi: 'cam-ready' });
+      if (d.bsi === 'cam-box') { seen = Date.now(); place(d); start(); }
+      if (d.bsi === 'cam-off') { seen = 0; stop(); }
+      if (d.bsi === 'scan-result') { box.className = 'on ' + (d.bad ? 'bad' : 'ok'); clearTimeout(flashT); flashT = setTimeout(function () { if (v.srcObject) box.className = 'on'; }, 900);
+        if (navigator.vibrate) { try { navigator.vibrate(d.bad ? [60, 60, 60] : 40); } catch (x) {} } }
+    });
+    setInterval(function () { if (seen && Date.now() - seen > 1500) { seen = 0; stop(); } }, 500);
+    document.addEventListener('visibilitychange', function () { if (document.hidden) { seen = 0; stop(); } });
+    if ('BarcodeDetector' in window) { try { detector = new BarcodeDetector({ formats: ['qr_code'] }); } catch (e) { detector = null; } }
+    if (!detector) { var s = document.createElement('script'); s.src = '/scan/jsQR.js'; document.head.appendChild(s); }
+  })();
+</script>
 </body>
 </html>
