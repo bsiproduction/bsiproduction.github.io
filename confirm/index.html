@@ -1,55 +1,119 @@
 <!DOCTYPE html>
+<!-- The crew's Confirm / Can't make it page. BUILT from bsi-shop-systems crewconfirm/Page.html by tools/build-confirm-page.js:
+     change Page.html and rebuild. It draws the call and talks to the confirm app's doPost by fetch (no Google cookies), so a phone
+     signed in to several Google accounts still works (2026-10-07). -->
 <html lang="en">
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<meta name="theme-color" content="#0A0B0D">
 <meta name="robots" content="noindex">
 <meta name="referrer" content="no-referrer">
 <title>BSI Production · your call</title>
 <link rel="icon" href="/favicon.ico" sizes="any">
-<link rel="icon" type="image/png" sizes="32x32" href="/icons/icon-32.png">
 <link rel="apple-touch-icon" href="/icons/icon-180.png">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600;700&display=swap">
 <style>
-  :root { --bg: #0A0B0D; --fg: #F1F2F3; --muted: #A9AFB6; --raised: #2F3135; --link: #7FB4EA; }
-  html, body { margin: 0; height: 100%; background: var(--bg); color: var(--fg); overflow: hidden; }
-  iframe { position: fixed; inset: 0; width: 100%; height: 100%; border: 0; background: var(--bg); opacity: 0; transition: opacity .2s; }
-  iframe.ready { opacity: 1; }
-  #loader { position: fixed; inset: 0; display: flex; flex-direction: column; align-items: center; justify-content: center;
-    padding: 0 16px; color: var(--fg); font: 500 15px/1.5 Montserrat, system-ui, -apple-system, sans-serif; text-align: center; }
-  #loader img { width: 200px; max-width: 70vw; height: auto; margin-bottom: 24px; }
-  #loader .bar { width: 160px; height: 3px; border-radius: 2px; background: var(--raised); overflow: hidden; margin: 14px 0 0; }
-  #loader .bar i { display: block; width: 40%; height: 100%; border-radius: 2px; background: var(--fg); animation: slide 1.2s ease-in-out infinite; }
-  @keyframes slide { from { transform: translateX(-100%); } to { transform: translateX(250%); } }
-  @media (prefers-reduced-motion: reduce) { #loader .bar i { animation-duration: 3s; } }
-  #loader .slow { color: var(--muted); font-size: 13px; max-width: 320px; margin-top: 18px; min-height: 40px; }
-  #loader a { color: var(--link); text-decoration: none; }
-  #loader.done { display: none; }
+  /* BSI crew confirm: one card, phone first. ShopCall's daylight colours (freelancers open it from an email, most in daylight). */
+  :root { --bg: #F4F5F7; --card: #FFFFFF; --fg: #17191C; --muted: #4E545C; --border: #D9DCE1; --ok: #187A49; --ok-bg: #E7F4EC; --danger: #C2372F; --danger-bg: #FBEAE8; --warn: #8F5A00; --warn-bg: #FFF5E0; }
+  @media (prefers-color-scheme: dark) { :root { --bg: #0A0B0D; --card: #15171B; --fg: #F1F2F3; --muted: #A9AFB6; --border: #30353C; --ok: #4FC38A; --ok-bg: #11271C; --danger: #F27A72; --danger-bg: #2E1614; --warn: #F2A93B; --warn-bg: #2B2010; } }
+  * { box-sizing: border-box; }
+  body { margin: 0; background: var(--bg); color: var(--fg); font-family: 'Montserrat', system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif; font-size: 16px; line-height: 1.5; -webkit-font-smoothing: antialiased; padding: 24px 16px 48px; }
+  main { max-width: 480px; margin: 0 auto; display: grid; gap: 16px; }
+  .brand { font-weight: 700; letter-spacing: .08em; font-size: 12px; color: var(--muted); text-transform: uppercase; }
+  .card { background: var(--card); border: 1px solid var(--border); border-radius: 12px; padding: 20px; display: grid; gap: 14px; }
+  h1 { font-size: 24px; margin: 0; line-height: 1.25; }
+  .hi { margin: 0; color: var(--muted); }
+  .call { border-top: 1px solid var(--border); padding-top: 12px; display: grid; gap: 2px; }
+  .call .d { font-weight: 600; }
+  .call .m { color: var(--muted); font-size: 14px; }
+  .btns { display: grid; gap: 10px; }
+  button { font: inherit; font-weight: 600; font-size: 17px; min-height: 52px; border-radius: 10px; border: 1px solid var(--border); background: var(--card); color: var(--fg); cursor: pointer; padding: 0 16px; }
+  button.yes { background: var(--fg); color: var(--card); border-color: var(--fg); }
+  button:focus-visible, textarea:focus-visible { outline: 3px solid var(--fg); outline-offset: 2px; }
+  button[disabled] { opacity: .6; cursor: default; }
+  textarea { font: inherit; font-size: 16px; width: 100%; min-height: 72px; border: 1px solid var(--border); border-radius: 8px; padding: 10px; background: var(--bg); color: var(--fg); }
+  label { font-size: 14px; color: var(--muted); }
+  .state { border-radius: 10px; padding: 12px 14px; font-weight: 600; }
+  .state.ok { background: var(--ok-bg); color: var(--ok); }
+  .state.cant { background: var(--danger-bg); color: var(--danger); }
+  .state.test { background: var(--warn-bg); color: var(--warn); font-weight: 500; }
+  .state small { display: block; font-weight: 400; color: var(--muted); margin-top: 2px; }
+  .change { background: none; border: 0; color: var(--muted); text-decoration: underline; text-underline-offset: 3px; min-height: 44px; font-size: 15px; font-weight: 500; justify-self: start; padding: 0; }
+  .call .no { color: var(--danger); font-weight: 600; font-size: 14px; }
+  .state.some { background: var(--warn-bg); color: var(--warn); }
+  .days { display: grid; gap: 8px; margin: 0; padding: 0; border: 0; }
+  .days legend { font-size: 14px; color: var(--muted); padding: 0; margin-bottom: 4px; }
+  .day { display: flex; gap: 12px; align-items: center; min-height: 56px; padding: 8px 12px; border: 1px solid var(--border); border-radius: 10px; cursor: pointer; }
+  .day:has(input:checked) { border-color: var(--ok); background: var(--ok-bg); }
+  .day input { width: 24px; height: 24px; margin: 0; flex: none; accent-color: var(--ok); }
+  .day span { display: grid; line-height: 1.35; }
+  .day small { color: var(--muted); font-size: 14px; }
+  .err { color: var(--danger); font-size: 15px; margin: 0; }
+  .foot { color: var(--muted); font-size: 13px; text-align: center; }
+  [hidden] { display: none !important; }
 </style>
 </head>
 <body>
-<div id="loader" role="status">
-  <img src="/icons/lockup-white.svg" alt="BSI Production">
-  <div>Loading your call…</div>
-  <div class="bar" aria-hidden="true"><i></i></div>
-  <div class="slow" id="slow"></div>
-</div>
-<!-- The crew's Confirm / Can't make it page (bsi-shop-systems/crewconfirm, 2026-09-29): the email's button lands here as
-     /confirm/?t=<token>, and the confirm web app runs inside, so the address bar stays bsiproduction.github.io. The app needs
-     no Google sign-in (access Anyone), so the frame works in Safari too. Only the token is passed on. -->
+<main>
+  <div class="brand">BSI Production · crew call</div>
+  <div class="card" id="card"></div>
+  <p class="foot">Questions about the call? Reply to the email or call the office.</p>
+</main>
 <script>
-  var APP = 'https://script.google.com/macros/s/AKfycbypUwp2NADxPLl_sZUEhd5EA-7SeTo94hdNF4DMNqu0J4f549WC7S4Tz_uhTWlZ30LE/exec';
-  var t = (new URLSearchParams(location.search).get('t') || '').toLowerCase();
-  var TARGET = APP + (/^[a-f0-9]{40}$/.test(t) ? '?t=' + t : '');
-  var slow = document.getElementById('slow');
-  setTimeout(function () { slow.textContent = 'Still loading. It can take a few seconds on a slow connection.'; }, 8000);
-  setTimeout(function () { slow.innerHTML = 'Still loading. <a href="' + TARGET + '">Open it directly</a>'; }, 20000);
-  var f = document.createElement('iframe');
-  f.title = 'Your call';
-  f.onload = function () { f.className = 'ready'; document.getElementById('loader').className = 'done'; };
-  f.src = TARGET;
-  document.body.appendChild(f);
+  var APP = "https://script.google.com/macros/s/AKfycbypUwp2NADxPLl_sZUEhd5EA-7SeTo94hdNF4DMNqu0J4f549WC7S4Tz_uhTWlZ30LE/exec";
+  var TOKEN = (function () { var t = (new URLSearchParams(location.search).get('t') || '').trim().toLowerCase(); return /^[a-f0-9]{40}$/.test(t) ? t : ''; })();
+  var DIRECT = APP + (TOKEN ? '?t=' + TOKEN : '');
+  var MODEL = null, ASK = '', BUSY = false, ERR = '', DONE = null, PICK = {};
+  /** The confirm app's doPost: a cross-site fetch carries no Google cookies, so whichever accounts the phone is signed in to never matter. */
+  function api(body) {
+    return fetch(APP, { method: 'POST', headers: { 'Content-Type': 'text/plain;charset=utf-8' }, body: JSON.stringify(body), redirect: 'follow', credentials: 'omit' })
+      .then(function (r) { if (!r.ok) throw new Error('Couldn\'t reach the office (' + r.status + '). Try again in a minute.'); return r.json(); })
+      .then(function (j) { if (!j || j.ok !== true) throw new Error((j && j.error) || 'No answer from the office.'); return j.data; });
+  }
+  function esc(s) { return String(s == null ? '' : s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;'); }
+  function paint() {
+    var m = MODEL, el = document.getElementById('card');
+    if (!m) { el.innerHTML = ERR ? '<h1>Couldn\'t load your call</h1><p class="hi">' + esc(ERR) + '</p><p class="hi"><a href="' + esc(DIRECT) + '">Open it directly</a>, or reply to the email.</p>'
+      : '<p class="hi" role="status">Loading your call…</p>'; return; }
+    if (m.bad) { el.innerHTML = '<h1>This link can\'t be used</h1><p class="hi">' + esc(m.bad) + '</p>'; return; }
+    var calls = m.lines.map(function (l) { return '<div class="call"><span class="d">' + esc(l.day) + '</span>' + (m.answer === 'some' && l.state === 'cant' ? '<span class="no">You can\'t make this day</span>' : '') + '<span>' + esc(l.role) + ' · ' + esc(l.hours) + '</span><span class="m">' + esc(l.place) + (l.meals ? ' · meals ' + esc(l.meals) : '') + '</span></div>'; }).join('');
+    var head = '<h1>' + esc(m.gig) + '</h1><p class="hi">' + (m.first ? 'Hi ' + esc(m.first) + '. ' : '') + 'Your call' + (m.lines.length === 1 ? '' : 's') + ' on this job:</p>' + calls;
+    var state = '';
+    if (DONE && DONE.test) state = '<div class="state test">This is a test link, so nothing was saved.<small>Real links work once the office turns on sending to crew.</small></div>';
+    else if (m.answer === 'confirmed') state = '<div class="state ok">You\'re confirmed. Thank you!<small>If that changes, tap below and let us know.</small></div>';
+    else if (m.answer === 'some') { var n = m.lines.filter(function (l) { return l.state === 'confirmed'; }).length;
+      state = '<div class="state some">You can make ' + n + ' of ' + m.lines.length + ' days. Thank you!' + (m.reason ? '<small>' + esc(String(m.reason).replace(/^'/, '')) + '</small>' : '') + '<small>The office has been told and will find someone for the other days.</small></div>'; }
+    else if (m.answer === 'cant') state = '<div class="state cant">You told us you can\'t make it.' + (m.reason ? '<small>' + esc(String(m.reason).replace(/^'/, '')) + '</small>' : '') + '<small>The office has been told. Tap below if you can after all.</small></div>';
+    var answered = (m.answer === 'confirmed' || m.answer === 'cant' || m.answer === 'some') && !ASK;
+    var btns = answered ? '<button type="button" class="change" onclick="ASK=\'change\'; paint()">Change my answer</button>' :
+      ASK === 'cant' ? '<label for="why">Anything the office should know? (optional)</label><textarea id="why" maxlength="200" placeholder="e.g. another gig that day"></textarea>' +
+        '<div class="btns"><button type="button" class="yes" onclick="send(\'cant\')"' + (BUSY ? ' disabled' : '') + '>' + (BUSY ? 'Sending…' : 'Send: I can\'t make it') + '</button><button type="button" onclick="ASK=\'change\'; paint()">Back</button></div>' :
+      ASK === 'some' ? '<fieldset class="days"><legend>Tick the days you can work</legend>' + m.lines.map(function (l) {
+          return '<label class="day"><input type="checkbox" onchange="PICK[this.value]=this.checked" value="' + esc(l.id) + '"' + (PICK[l.id] ? ' checked' : '') + '><span>' + esc(l.day) + '<small>' + esc(l.role) + ' · ' + esc(l.hours) + '</small></span></label>'; }).join('') + '</fieldset>' +
+        '<label for="why">Anything the office should know? (optional)</label><textarea id="why" maxlength="200" placeholder="e.g. another gig on Saturday"></textarea>' +
+        '<div class="btns"><button type="button" class="yes" onclick="send(\'some\')"' + (BUSY ? ' disabled' : '') + '>' + (BUSY ? 'Sending…' : 'Send my days') + '</button><button type="button" onclick="ASK=\'change\'; paint()">Back</button></div>' :
+      '<div class="btns"><button type="button" class="yes" onclick="send(\'confirmed\')"' + (BUSY ? ' disabled' : '') + '>' + (BUSY ? 'Sending…' : 'Confirm') + '</button>' +
+        (m.some ? '<button type="button" onclick="pickDays()"' + (BUSY ? ' disabled' : '') + '>I can make some days</button>' : '') +
+        '<button type="button" onclick="ASK=\'cant\'; paint()"' + (BUSY ? ' disabled' : '') + '>I can\'t make it</button></div>';
+    el.innerHTML = head + state + btns + (ERR ? '<p class="err" role="alert">' + esc(ERR) + '</p>' : '');
+  }
+  // start from what they told us before (a some-days answer), else nothing ticked
+  function pickDays() { PICK = {}; if (MODEL.answer === 'some') MODEL.lines.forEach(function (l) { if (l.state === 'confirmed') PICK[l.id] = true; }); ASK = 'some'; ERR = ''; paint(); }
+  function send(choice) {
+    if (BUSY) return;
+    var why = document.getElementById('why'), whyText = why ? why.value : '';
+    var can = Object.keys(PICK).filter(function (k) { return PICK[k]; });
+    if (choice === 'some' && !can.length) { ERR = 'Tick at least one day you can work.'; paint(); return; }
+    BUSY = true; ERR = ''; paint();
+    if (why) document.getElementById('why').value = whyText;
+    api({ fn: 'answer', t: TOKEN, choice: choice, reason: whyText, can: can })
+      .then(function (r) { BUSY = false; ASK = ''; DONE = r; MODEL = r.model; paint(); })
+      .catch(function (e) { BUSY = false; ERR = (e && e.message) || 'That didn\'t go through. Try again.'; paint(); });
+  }
+  paint();
+  if (!TOKEN) { MODEL = { bad: 'This link isn\'t complete. Open it again from your email.' }; paint(); }
+  else api({ fn: 'view', t: TOKEN }).then(function (m) { MODEL = m; paint(); }).catch(function (e) { ERR = (e && e.message) || 'No answer from the office.'; paint(); });
 </script>
-<noscript><a href="https://script.google.com/macros/s/AKfycbypUwp2NADxPLl_sZUEhd5EA-7SeTo94hdNF4DMNqu0J4f549WC7S4Tz_uhTWlZ30LE/exec" style="color:#F1F2F3">Open your call</a></noscript>
 </body>
 </html>
