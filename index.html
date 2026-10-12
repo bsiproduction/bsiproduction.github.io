@@ -28,6 +28,19 @@
   #loader .slow { color: var(--muted); font-size: 13px; max-width: 320px; margin-top: 18px; min-height: 40px; }
   #loader a { color: var(--link); text-decoration: none; }
   #loader.done { display: none; }
+  /* Signed out (2026-10-12, Tristan's 401 screenshot; audit C-02): when the browser's Google account is signed out, Google serves its own
+     "401. That's an error." page INSIDE the frame, and the frame still reports loaded. ShopCall says hello to this page the moment it
+     draws (SitePage firstDrawn_, appPlain_); no hello within HELLO_WAIT_MS of the frame loading = Google's page is in there, and these
+     words go over it. A late hello takes them down again. */
+  #signedout { position: fixed; inset: 0; z-index: 6; display: none; align-items: center; justify-content: center; padding: 16px; background: var(--bg); color: var(--fg); font: 15px/1.5 Montserrat, system-ui, -apple-system, sans-serif; }
+  #signedout.on { display: flex; }
+  .so-card { max-width: 440px; display: grid; gap: 12px; }
+  .so-card h1 { font-size: 22px; margin: 0; line-height: 1.25; }
+  .so-card p { margin: 0; color: var(--muted); }
+  .so-btns { display: flex; gap: 10px; flex-wrap: wrap; }
+  .so-btns a, .so-btns button { font: 600 15px Montserrat, system-ui, -apple-system, sans-serif; min-height: 44px; padding: 10px 16px; border-radius: 8px; border: 1px solid var(--fg); color: var(--fg); background: transparent; text-decoration: none; cursor: pointer; display: inline-flex; align-items: center; }
+  .so-btns .so-primary { background: var(--fg); color: var(--bg); }
+  .so-sub { font-size: 13px; }
   /* ShopCall's Scan view camera (2026-10-02): Google's frame never gets the camera, this page does. The Scan view says where its camera
      box is; the live video is drawn right over it, so the camera is in the Scan view. Touches pass through to ShopCall. */
   #cam { position: fixed; z-index: 5; display: none; overflow: hidden; border-radius: 10px; background: #000; pointer-events: none; transition: box-shadow .15s; }
@@ -46,6 +59,14 @@
   <div class="bar" aria-hidden="true"><i></i></div>
   <div class="slow" id="slow"></div>
 </div>
+<div id="signedout" role="alertdialog" aria-labelledby="so-h" aria-describedby="so-p">
+  <div class="so-card">
+    <h1 id="so-h">Google has signed you out on this browser</h1>
+    <p id="so-p">ShopCall opens with your bsiproduction.com Google account. Sign in to Google, then come back here.</p>
+    <p class="so-btns"><a class="so-primary" href="https://accounts.google.com/AccountChooser?continue=https%3A%2F%2Fscript.google.com%2Fa%2Fmacros%2Fbsiproduction.com%2F" target="_blank" rel="noopener">Sign in to Google</a><button type="button" onclick="location.reload()">Try again</button></p>
+    <p class="so-sub">Signed in with a different account? Switch to your bsiproduction.com one; the shop app only answers that one.</p>
+  </div>
+</div>
 <!-- The BSI Shop Android app opens this page, so Android shows no
      address bar; the shop web app runs inside. shell=1 is what lets the Hub be framed. -->
 <script>
@@ -62,11 +83,15 @@
   // a slow load says so, then offers a way out
   setTimeout(function () { slow.textContent = 'Still loading. The shop data can take a little while on a slow connection.'; }, 10000);
   setTimeout(function () { slow.innerHTML = 'Still loading. <a href="' + TARGET + '">Try again</a>'; }, 40000);
+  // Signed out (2026-10-12): ShopCall says hello when it draws; no hello HELLO_WAIT_MS after the frame loads = Google's own page is in the frame
+  var HELLO_WAIT_MS = 7000, heard = false, helloT = null;
+  function signedOut(on) { var so = document.getElementById('signedout'); if (so) so.className = on ? 'on' : ''; }
+  function helloWait() { if (heard || helloT) return; helloT = setTimeout(function () { if (!heard) signedOut(true); }, HELLO_WAIT_MS); }
   if (/Chrome\/\d/.test(ua) && !apple) {
     var f = document.createElement('iframe');
     f.title = 'ShopCall';
     f.allow = 'camera; clipboard-write; fullscreen';
-    f.onload = function () { f.className = 'ready'; document.getElementById('loader').className = 'done'; };
+    f.onload = function () { f.className = 'ready'; document.getElementById('loader').className = 'done'; helloWait(); };
     f.src = TARGET + (TARGET.indexOf('?') === -1 ? '?' : '&') + 'shell=1';
     document.body.appendChild(f);
   } else {
@@ -125,6 +150,16 @@
     }
     window.addEventListener('message', function (e) {
       var d = e.data || {}; if (!GUC.test(e.origin) || typeof d.bsi !== 'string') return;
+      if (d.bsi === 'hello') { heard = true; signedOut(false); return; }   // ShopCall drew (2026-10-12): the account is signed in
+      // ShopCall's View as (2026-10-08, audit fix A-08): Google's frame can't send this page anywhere (a target=_top link does
+      // nothing here), so it asks: reload with ?p=…&as=… (the same deployment: a ?go= page stays on its own /exec or /dev)
+      if (d.bsi === 'nav') {
+        var nq = String(d.q || '');
+        if (!/^p=[a-z]+(&id=[A-Za-z0-9%._~-]*)?(&as=(office|shop))?$/.test(nq)) return;
+        var base = TARGET.split('?')[0];
+        location.href = location.pathname + '?' + (base === APP ? nq : 'go=' + encodeURIComponent(base + '?' + nq));
+        return;
+      }
       shop = e.source; origin = e.origin;
       if (d.bsi === 'cam-hello') return post({ bsi: 'cam-ready' });
       if (d.bsi === 'cam-box') { seen = Date.now(); place(d); start(); }
