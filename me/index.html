@@ -16,8 +16,9 @@
 <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
 <style>
 /* ============================================================
-   Console themes — docs/ui-standards.md §4. GRAPHITE IS CANONICAL. ahm is
-   UNTESTED until Settings ships a theme switcher: do not tune it. daylight got
+   Console themes — docs/ui-standards.md §4. GRAPHITE IS CANONICAL. 2026-10-08: tungsten, worklight, festival (dark) and callsheet (light) from
+   the theme pitch (Tristan's four picks), each measured by tools/theme-contrast-test.js; a light theme is also listed in UiStyles' LIGHT HEADERS selectors. ahm is
+   UNTESTED until Settings ships a theme switcher: do not tune it (one exception: its danger, audit B-10, 2026-10-08). daylight got
    its page stones and readable header on 9/25 (Tristan's call), its white header
    with a stone edge and its department colours on 9/29 ("C"); the rest of it
    follows the suite's shared light values (kit/design/tokens.json).
@@ -63,6 +64,9 @@
      ride their parent's (inventory / gigs), so a scan lands on a familiar frame */
   --v-wall: #E8D8B0; --v-wall-deep: #2E2A1E;   /* travertine */
   --v-subrentals: #C9D6E8; --v-subrentals-deep: #262B33;   /* moonstone */
+  --v-installs: #9696A2; --v-installs-deep: #26262D;   /* slate (Installs, 2026-10-02): 19.2 from the nearest fixed hue (danger), 12.6 from the nearest page (the pastel band is full; the closest existing pair is 11.3) */
+  --v-walls: #C880B0; --v-walls-deep: #33242D;   /* kunzite (LED walls, Tristan picked it 10/2 from four, design/walls-2026-10-02/hues.png): 19.8 from danger, 13.2 from Shop Board */
+  --v-news: #B9946E; --v-news-deep: #302819;   /* tiger's eye (News, 2026-10-04): 15.0 ΔE00 from the nearest page (config), every brighter hue sits on warn or calendar; the band is full */
   --v-reports: #8FB3C4; --v-reports-deep: #1E2A30;   /* labradorite (Reports, round 5): 16.2 from moonstone, 16.5 from pewter */
   /* R3.5 (2026-09-28): the desk tools reached from the Desk menu get their own hue (they borrowed Today's). Measured like the
      rest: ≥ ΔE00 17 from warn, danger, done, ok, link and every tape; ≥ 12 from every other page hue */
@@ -104,8 +108,10 @@
   --fg: #F1F4F4;       --fg-muted: #B2C1C3;   --fg-faint: #8FA3A6;
   --border: #2F3C3F;   --border-strong: #3C4B4F;
   --accent: #4FC3E8;   --accent-fg: #04191F;
-  --warn: #F2A93B;     --ok: #5CCB8F;         --danger: #E5524A;   --info: #4FC3E8;
-  --warn-fg: #1A1200;  --danger-fg: #FFFFFF;
+  /* audit B-10 (2026-10-08): danger was #E5524A, 3.78:1 on a well ("double-booked" on Crew calls); now graphite's value, 5.24:1 on a
+     well, 5.87 on the floor, 4.43 on the hero; armed danger buttons take graphite's dark words on it (white was 2.7:1) */
+  --warn: #F2A93B;     --ok: #5CCB8F;         --danger: #F27A72;   --info: #4FC3E8;
+  --warn-fg: #1A1200;  --danger-fg: #0B0C0E;
   --done: #3FC9B4;     --done-fg: #04211C;
   /* hairlines ON the hero surface: --border-strong vanished on it (round 2 step 5) */
   --border-hero: #415156; --border-strong-hero: #4E6066;
@@ -118,7 +124,9 @@
 [data-theme="daylight"] {
   /* ---- light; same roles, same meanings ---- */
   --bg-base: #F4F5F6;  --bg-raised: #FFFFFF;  --bg-sunken: #E9EBEE;
-  --fg: #17191C;       --fg-muted: #4E545C;   --fg-faint: #646A73;
+  /* audit B-10 (2026-10-08): muted was #4E545C; a pill's count draws it at 80% (UiStyles .seg button .num) and that was 4.30:1 on
+     the floor ("4/20" on the pull's department chips); #454A51 is 4.84:1 there at 80%, 8.2:1 at full */
+  --fg: #17191C;       --fg-muted: #454A51;   --fg-faint: #646A73;
   --border: #D9DCE1;   --border-strong: #C3C8CF;
   --accent: #2F6FA8;   --accent-fg: #FFFFFF;
   /* the suite's shared light values (kit/design/tokens.json): the old warn / ok / done were 3.5–4.1:1 on white */
@@ -157,6 +165,9 @@
   --v-orders: #273311; --v-orders-deep: #B8C4A6;   /* prehnite · ink 13.4:1 on white, 7.3:1 on the stone, 21.2 from black tape */
   --v-wall: #3A2C01; --v-wall-deep: #E8D8B0;   /* travertine · ink 13.6:1 on white, 9.7:1 on the stone, 21.6 from black tape */
   --v-patches: #4F3858; --v-patches-deep: #BDA9C6;   /* lepidolite · ink 10.3:1 on white, 4.7:1 on the stone, 17 from black tape */
+  --v-walls: #4E1A3E; --v-walls-deep: #C880B0;   /* kunzite · ink on white and on the stone */
+  --v-installs: #2F2F45; --v-installs-deep: #9696A2;   /* slate · ink on white and on the stone: see the round's handoff */
+  --v-news: #3E2A14; --v-news-deep: #B9946E;   /* tiger's eye · ink 13.6:1 on white, 4.9:1 on the stone */
   --v-reports: #1F3A4A; --v-reports-deep: #8FB3C4;   /* labradorite · ink 11.9:1 on white, 5.3:1 on the stone */
   --v-subrentals: #2E407C; --v-subrentals-deep: #C9D6E8;   /* moonstone · ink 9.8:1 on white, 6.7:1 on the stone, 17.1 from black tape */
   --v-config: #432420; --v-config-deep: #C6ADA9;   /* morganite · ink 13.9:1 on white, 6.6:1 on the stone, 17.9 from black tape */
@@ -168,6 +179,182 @@
      (Dark's Audio / Video 9.8): the department is always named beside its colour. Other stays a neutral grey, as in Dark.
      Re-measure with node design/light-headers-2026-09-29/tools/depts.js */
   --dept-audio: #4796F7; --dept-lighting: #959A20; --dept-video: #8F83E9; --dept-staging: #4EA72B; --dept-management: #E86191; --dept-other: #7C8289;
+  color-scheme: light;
+}
+[data-theme="tungsten"] {
+  /* ---- TUNGSTEN (Tristan's pick from the 2026-10-08 theme pitch; second cut 13:55 after "looks like a filter over graphite"): a 3200K key
+     light and a cool fill. The floor is a deep warm brown, the wells a clear step up, and the hero is LIT (a lamp on the desk): three tiers
+     further apart than graphite's. Whites are lamp-coloured, tracks and hairlines brass, links a pale blue fill so they still read as links
+     against the warmth; warn a hotter amber. The halogen spill on the hero and the top of the page is UiStyles' [data-theme="tungsten"] rules.
+     Page stones: its own brass-cast set (tools/theme-stones.js). Measured by tools/theme-contrast-test.js. ---- */
+  --bg-base: #110C05;  --bg-raised: #241B0F;  --bg-sunken: #080502;
+  --fg: #FFF7EC;       --fg-muted: #E8D6B6;   --fg-faint: #B9A581;   /* round 2 (Tristan): "text more white": the lamp tint is a hint now, not a colour (was #FFE9C4 / #D6B98A / #A08A62) */
+  --border: #3A2C18;   --border-strong: #54412A;
+  --accent: #93C3F2;   --accent-fg: #0A1724;
+  --warn: #FFA114;     --ok: #8ADA9F;         --danger: #FF8A7A;   --info: #93C3F2;
+  --warn-fg: #1A1200;  --danger-fg: #0B0C0E;
+  --done: #4FD0B6;     --done-fg: #04211C;
+  --border-hero: #7A6240; --border-strong-hero: #8E744E;
+  --surface-hero: #4A3A22; --surface-queue: #1C150B; --surface-ref: #140F07;
+  --phase-prep: #110C05; --phase-prep-fg: #D6B98A; --phase-prep-edge: #A08A62;
+  --phase-out: #C2A270;  --phase-out-fg: #110C05;
+  --phase-intake: #5A4628; --phase-intake-fg: #F6EAD4;
+  --meter-lit: #FFF7EC; --meter-off: #5A4628; --meter-off-hero: #7A6240; --field-edge: #54412A;
+  /* its own page stones (tools/theme-stones.js, 2026-10-08): the Mineral hues cast to this theme, each >= 15 dE00 from its meaning colours
+     and every tape, >= 8 from the other pages (hue / deep tint). Regenerate with node tools/theme-stones.js --write */
+  /* its own page stones (tools/theme-stones.js, 2026-10-08): the Mineral hues cast to this theme, each >= 15 dE00 from its meaning colours
+     and every tape, >= 8 from the other pages (hue / deep tint). Regenerate with node tools/theme-stones.js --write */
+  --v-today: #C1A995; --v-today-deep: #46280C;
+  --v-gigs: #DAA0CE; --v-gigs-deep: #42243D;
+  --v-projects: #F2C3A2; --v-projects-deep: #47270F;
+  --v-board: #F0BECB; --v-board-deep: #49222E;
+  --v-inventory: #AFB094; --v-inventory-deep: #333308;
+  --v-approvals: #C0A5B6; --v-approvals-deep: #44233A;
+  --v-errors: #E7958C; --v-errors-deep: #4A2320;
+  --v-calendar: #D6D09B; --v-calendar-deep: #363106;
+  --v-tasks: #9AB6A4; --v-tasks-deep: #0F3924;
+  --v-notes: #ABB66A; --v-notes-deep: #2F340B;
+  --v-feedback: #D3C4A9; --v-feedback-deep: #3F2D04;
+  --v-orders: #CAD2B5; --v-orders-deep: #2D340D;
+  --v-wall: #EAC892; --v-wall-deep: #402C05;
+  --v-subrentals: #D8C1FE; --v-subrentals-deep: #362849;
+  --v-installs: #DDC4E2; --v-installs-deep: #3E2643;
+  --v-walls: #D6B5AF; --v-walls-deep: #4A231E;
+  --v-news: #D5A27B; --v-news-deep: #47280E;
+  --v-reports: #91B6B8; --v-reports-deep: #01383A;
+  --v-config: #F7BFAD; --v-config-deep: #4A2419;
+  --v-registry: #D999AB; --v-registry-deep: #49222E;
+  --v-patches: #F9ABCC; --v-patches-deep: #472333;
+  color-scheme: dark;
+}
+[data-theme="worklight"] {
+  /* ---- WORKLIGHT (Tristan's pick, 2026-10-08): the blue clip lights backstage. Near-black navy, an electric blue for links, cool white
+     words; the attention colours a step warmer so they separate from the blue field. Page stones: graphite's. ---- */
+  --bg-base: #06101F;  --bg-raised: #0C1A30;  --bg-sunken: #030A16;
+  --fg: #EAF1FF;       --fg-muted: #AEBDD9;   --fg-faint: #7A8EB0;
+  --border: #16294B;   --border-strong: #243C6E;
+  --accent: #4DA3FF;   --accent-fg: #021026;
+  --warn: #FFB13B;     --ok: #4FD08F;         --danger: #FF8A82;   --info: #4DA3FF;
+  --warn-fg: #1A1200;  --danger-fg: #0B0C0E;
+  --done: #3BD0BE;     --done-fg: #04211C;
+  --border-hero: #35588F; --border-strong-hero: #4870AE;
+  --surface-hero: #14305C; --surface-queue: #0A1628; --surface-ref: #081220;
+  --phase-prep: #06101F; --phase-prep-fg: #AEBDD9; --phase-prep-edge: #7A8EB0;
+  --phase-out: #8FAEDC;  --phase-out-fg: #06101F;
+  --phase-intake: #1E3A66; --phase-intake-fg: #D5E2F7;
+  --meter-lit: #4DA3FF; --meter-off: #243C6E; --meter-off-hero: #35588F; --field-edge: #2B4C86;   /* round 2 (10/8 evening): the lit meter is the clip light itself; field edges a step bluer */
+  /* its own page stones (tools/theme-stones.js, 2026-10-08): the Mineral hues cast to this theme, each >= 15 dE00 from its meaning colours
+     and every tape, >= 8 from the other pages (hue / deep tint). Regenerate with node tools/theme-stones.js --write */
+  /* its own page stones (tools/theme-stones.js, 2026-10-08): the Mineral hues cast to this theme, each >= 15 dE00 from its meaning colours
+     and every tape, >= 8 from the other pages (hue / deep tint). Regenerate with node tools/theme-stones.js --write */
+  --v-today: #D5DA9D; --v-today-deep: #272908;
+  --v-gigs: #BFB0F7; --v-gigs-deep: #28213C;
+  --v-projects: #F6CAB1; --v-projects-deep: #3A1F0E;
+  --v-board: #FBB0E6; --v-board-deep: #361C2F;
+  --v-inventory: #BCDEC5; --v-inventory-deep: #102D1B;
+  --v-approvals: #C3AAC8; --v-approvals-deep: #311E35;
+  --v-errors: #F29798; --v-errors-deep: #3B1C1C;
+  --v-calendar: #AEBA97; --v-calendar-deep: #222A0D;
+  --v-tasks: #74DCFE; --v-tasks-deep: #002C38;
+  --v-notes: #BFE0AB; --v-notes-deep: #1C2C12;
+  --v-feedback: #A9BF6E; --v-feedback-deep: #232A0C;
+  --v-orders: #9DBEA5; --v-orders-deep: #112D1A;
+  --v-wall: #D2C3A0; --v-wall-deep: #312504;
+  --v-subrentals: #B7CBFF; --v-subrentals-deep: #1C253F;
+  --v-installs: #DCCBF6; --v-installs-deep: #2B203B;
+  --v-walls: #F0C7D7; --v-walls-deep: #391B28;
+  --v-news: #CCAE94; --v-news-deep: #38200A;
+  --v-reports: #91BCCA; --v-reports-deep: #012C36;
+  --v-config: #DD9FB8; --v-config-deep: #391B28;
+  --v-registry: #B1B0D3; --v-registry-deep: #25223E;
+  --v-patches: #D19EE2; --v-patches-deep: #301E36;
+  color-scheme: dark;
+}
+[data-theme="festival"] {
+  /* ---- FESTIVAL (Tristan's pick, 2026-10-08; the pitch's dare): the LED wall. Pure black, white words, a magenta link, and every page's
+     stone at full strength instead of a pastel (the one theme that breaks the pastel-frame rule on purpose; the page's name and icon still
+     carry it). Attention colours brightened to keep up. Orange Today stone next to amber warn is the known clash: the words always say which. ---- */
+  --bg-base: #000000;  --bg-raised: #101010;  --bg-sunken: #000000;
+  --fg: #FFFFFF;       --fg-muted: #C2C2C2;   --fg-faint: #8C8C8C;
+  --border: #262626;   --border-strong: #3F3F3F;
+  --accent: #FF5CF0;   --accent-fg: #1A0018;
+  --warn: #FFB300;     --ok: #3DFF9A;         --danger: #FF5A5A;   --info: #FF5CF0;
+  --warn-fg: #1A1200;  --danger-fg: #0B0C0E;
+  --done: #2EF2DE;     --done-fg: #04211C;
+  --border-hero: #3A3A3A; --border-strong-hero: #555555;
+  --surface-hero: #1A1A1A; --surface-queue: #0B0B0B; --surface-ref: #070707;
+  --phase-prep: #000000; --phase-prep-fg: #C2C2C2; --phase-prep-edge: #8C8C8C;
+  --phase-out: #9A9A9A;  --phase-out-fg: #000000;
+  --phase-intake: #333333; --phase-intake-fg: #E0E0E0;
+  --meter-lit: #FFFFFF; --meter-off: #3D3D3D; --meter-off-hero: #474747; --field-edge: #3F3F3F;
+  /* the stones at full strength, each with a deep tint for the header */
+  --v-today: #FF7A00; --v-today-deep: #2A1200;
+  --v-gigs: #7C6FFF; --v-gigs-deep: #15123A;
+  --v-projects: #FF6A48; --v-projects-deep: #331008;
+  --v-board: #FF5FAE; --v-board-deep: #33102A;
+  --v-inventory: #2EE07A; --v-inventory-deep: #063A1E;
+  --v-approvals: #C86BFF; --v-approvals-deep: #2A0F40;
+  --v-errors: #FF4D6D; --v-errors-deep: #3A0B14;
+  --v-calendar: #B7FF2E; --v-calendar-deep: #28380A;
+  --v-tasks: #2ED3FF; --v-tasks-deep: #083540;
+  --v-notes: #A3AEBA; --v-notes-deep: #1E2429;
+  --v-feedback: #D4FF4D; --v-feedback-deep: #2E3A0E;
+  --v-orders: #8FD66B; --v-orders-deep: #1E3012;
+  --v-wall: #FFD24D; --v-wall-deep: #3A2E08;
+  --v-subrentals: #7FB3FF; --v-subrentals-deep: #10203A;
+  --v-installs: #A8A8BC; --v-installs-deep: #24242E;
+  --v-walls: #FF6AD5; --v-walls-deep: #3A1030;
+  --v-news: #FFB266; --v-news-deep: #3A2210;
+  --v-reports: #5FC8E8; --v-reports-deep: #0F2F3A;
+  --v-patches: #C79BFF; --v-patches-deep: #2A1A3A;
+  --v-config: #FF9A8A; --v-config-deep: #3A1A14;
+  --v-registry: #B49BFF; --v-registry-deep: #241A3A;
+  color-scheme: dark;
+}
+[data-theme="callsheet"] {
+  /* ---- CALL SHEET (Tristan's pick, 2026-10-08): the printed call sheet on the production desk. Cream paper, near-black ink, pen blue for
+     links, a dark red pen for danger. A LIGHT theme: it takes daylight's rules (UiStyles' [data-theme="daylight"] selectors list it too), its
+     page stones as ink + pastel, and its department colours; the meaning colours a shade darker than daylight's for the cream. ---- */
+  --bg-base: #F6F1E6;  --bg-raised: #FFFDF8;  --bg-sunken: #ECE5D6;
+  --fg: #1C1A16;       --fg-muted: #4F4A41;   --fg-faint: #6F695D;
+  --border: #DDD4C2;   --border-strong: #BDB29B;
+  --accent: #1F4F8F;   --accent-fg: #FFFFFF;
+  --warn: #855300;     --ok: #176B3F;         --danger: #B3261E;   --info: #1F4F8F;
+  --warn-fg: #FFFFFF;  --danger-fg: #FFFFFF;
+  --done: #11665B;     --done-fg: #FFFFFF;
+  --border-hero: #D1C7B2; --border-strong-hero: #BDB29B;
+  --surface-hero: #FFFDF8; --surface-queue: #FAF6EC; --surface-ref: #F8F3E8;
+  --phase-prep: #5B4FC4; --phase-prep-fg: #F0EDFF; --phase-prep-edge: #5B4FC4;
+  --phase-out: #2F6FC8;  --phase-out-fg: #F3F7FE;
+  --phase-intake: #176F7B; --phase-intake-fg: #EAF7F9;
+  --meter-lit: #3A3028; --meter-off: #CFC4AC; --meter-off-hero: #CFC4AC; --field-edge: #BDB29B;
+  --meter-truck: #C94F8C;
+  --dept-audio: #4796F7; --dept-lighting: #959A20; --dept-video: #8F83E9; --dept-staging: #4EA72B; --dept-management: #E86191; --dept-other: #7C8289;
+  /* its own page stones (tools/theme-stones.js, 2026-10-08): the Mineral hues cast to this theme, each >= 15 dE00 from its meaning colours
+     and every tape, >= 8 from the other pages (ink / pastel, as daylight). Regenerate with node tools/theme-stones.js --write */
+  /* its own page stones (tools/theme-stones.js, 2026-10-08): the Mineral hues cast to this theme, each >= 15 dE00 from its meaning colours
+     and every tape, >= 8 from the other pages (ink / pastel, as daylight). Regenerate with node tools/theme-stones.js --write */
+  --v-today: #343409; --v-today-deep: #D4D5A7;
+  --v-gigs: #5E2E69; --v-gigs-deep: #E3C5EA;
+  --v-projects: #471E0B; --v-projects-deep: #F4C5B2;
+  --v-board: #530525; --v-board-deep: #F4C1CD;
+  --v-inventory: #19321C; --v-inventory-deep: #B8DCBA;
+  --v-approvals: #553145; --v-approvals-deep: #EFC2D9;
+  --v-errors: #752728; --v-errors-deep: #F6C2BF;
+  --v-calendar: #3C4D03; --v-calendar-deep: #C9D8AD;
+  --v-tasks: #01332F; --v-tasks-deep: #A4DED7;
+  --v-notes: #113C01; --v-notes-deep: #BEDBB5;
+  --v-feedback: #404A2B; --v-feedback-deep: #C9D8AD;
+  --v-orders: #4F4502; --v-orders-deep: #DAD3A5;
+  --v-wall: #3C2700; --v-wall-deep: #E7CDA5;
+  --v-subrentals: #2C1C5D; --v-subrentals-deep: #CFCBF7;
+  --v-installs: #391F42; --v-installs-deep: #E1C5EC;
+  --v-walls: #541341; --v-walls-deep: #EEC2DC;
+  --v-news: #5B3D2C; --v-news-deep: #F2C7AE;
+  --v-reports: #014D5E; --v-reports-deep: #A5DBEC;
+  --v-config: #412022; --v-config-deep: #F6C2C3;
+  --v-registry: #4A3D60; --v-registry-deep: #D7C9F3;
+  --v-patches: #4A1852; --v-patches-deep: #E4C5E9;
   color-scheme: light;
 }
 </style>
@@ -195,6 +382,12 @@
   .state { font-size: 14px; font-weight: 600; }
   .state.ok { color: var(--fg); } .state.no { color: var(--warn); }   /* a list's states: plain words, amber only for a problem (done teal is for moments) */
   .open { border-left: 3px solid var(--warn); padding-left: 10px; }
+  /* who else is on the call (Config CREW_PAGE_TEAM, 10/19): folded under the call, one person a line, their phone a link */
+  .team { margin-top: 4px; }
+  .team summary { cursor: pointer; color: var(--fg); font-size: 15px; font-weight: 600; min-height: 44px; display: flex; align-items: center; }
+  .team summary:focus-visible { outline: 3px solid var(--accent); outline-offset: 2px; border-radius: 6px; }
+  .who { font-size: 15px; padding: 6px 0; border-top: 1px solid var(--border); display: flex; flex-wrap: wrap; gap: 2px 8px; align-items: baseline; }
+  .who a { color: var(--fg); min-height: 44px; display: inline-flex; align-items: center; }
   label { display: grid; gap: 6px; font-size: 15px; color: var(--fg-muted); }
   .field { font: 500 17px Montserrat, sans-serif; color: var(--fg); background: var(--bg-sunken); border: 1px solid var(--border-strong); border-radius: 10px; padding: 12px; min-height: 52px; width: 100%; box-sizing: border-box; }
   textarea.field { min-height: 80px; resize: vertical; }
@@ -243,8 +436,19 @@
     const st = s => s === 'confirmed' ? '<span class="state ok">confirmed</span>' : s === 'cant' ? '<span class="state no">can\'t make it</span>' : '';
     return '<section aria-labelledby="h-calls"><h2 id="h-calls">Your next calls <span class="n">' + m.calls.length + '</span></h2>' +
       (m.calls.length ? m.calls.map(c => '<div class="row"><div class="nm">' + esc(c.gig) + '</div><div class="sub">' + day(c.date) + (c.role ? ' · ' + esc(c.role) : '') +
-        (c.call ? ' · ' + (c.shop ? '' : 'call ') + t12(c.call) + (c.out ? '–' + t12(c.out) : '') : '') + (c.place ? ' · ' + esc(c.place) : '') + '</div>' + st(c.state) + '</div>').join('')
+        (c.call ? ' · ' + (c.shop ? '' : 'call ') + t12(c.call) + (c.out ? '–' + t12(c.out) : '') : '') + (c.place ? ' · ' + esc(c.place) : '') + '</div>' +
+        (c.tell ? '<div class="sub">' + esc(c.tell) + '</div>' : '') + (c.brief ? '<div class="sub">' + esc(c.brief) + '</div>' : '') + st(c.state) + teamHtml(c) + '</div>').join('')
         : '<div class="sub">No calls coming up. The office adds you to a call sheet and sends it.</div>') + '</section>';
+  }
+  /** Who else is on this call (CrewPage.gs cpTeam_, Config CREW_PAGE_TEAM): folded; a name, their role(s), their call when it isn't
+   *  yours, their phone (tap to call); then the roles still to fill. Nothing when the office has it off (no team). */
+  function teamHtml(c) {
+    const t = c.team; if (!t || (!(t.people || []).length && !(t.open || []).length)) return '';
+    const n = t.people.length;
+    return '<details class="team"' + (S.teamOpen ? ' open' : '') + '><summary>Who\'s on it' + (n ? ' (' + n + ' other' + (n === 1 ? '' : 's') + ')' : ' (nobody else yet)') + '</summary>' +
+      t.people.map(p => '<div class="who"><b>' + esc(p.name) + '</b><span class="sub">' + esc((p.roles || []).join(', ')) + (p.call ? ' · call ' + t12(p.call) : '') + '</span>' +
+        (p.phone ? '<a href="tel:' + esc(String(p.phone).replace(/[^\d+]/g, '')) + '">' + esc(p.phone) + '</a>' : '') + '</div>').join('') +
+      (t.open.length ? '<div class="sub">Still to fill: ' + esc(t.open.map(o => o.role + (o.n > 1 ? ' × ' + o.n : '')).join(', ')) + '</div>' : '') + '</details>';
   }
   function weekHtml(m) {
     const w = m.week, open = w.open || [];
