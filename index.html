@@ -50,6 +50,11 @@
     background: linear-gradient(#F1F2F3,#F1F2F3) 0 0/22px 3px, linear-gradient(#F1F2F3,#F1F2F3) 0 0/3px 22px, linear-gradient(#F1F2F3,#F1F2F3) 100% 0/22px 3px, linear-gradient(#F1F2F3,#F1F2F3) 100% 0/3px 22px,
       linear-gradient(#F1F2F3,#F1F2F3) 0 100%/22px 3px, linear-gradient(#F1F2F3,#F1F2F3) 0 100%/3px 22px, linear-gradient(#F1F2F3,#F1F2F3) 100% 100%/22px 3px, linear-gradient(#F1F2F3,#F1F2F3) 100% 100%/3px 22px;
     background-repeat: no-repeat; }
+  /* Switch lens (2026-10-23): only with 2+ back cameras; it sits at the box's bottom and the code frame moves up clear of it */
+  #cam button { position: absolute; left: 50%; bottom: 8px; transform: translateX(-50%); display: none; pointer-events: auto; font: 600 15px Montserrat, system-ui, -apple-system, sans-serif;
+    height: 44px; padding: 0 16px; border: 0; border-radius: 8px; background: var(--raised); color: var(--fg); cursor: pointer; white-space: nowrap; }
+  #cam button:focus-visible { outline: 2px solid var(--link); outline-offset: 2px; }
+  #cam[data-lenses] button { display: block; } #cam[data-lenses] i { top: calc(50% - 26px); max-height: calc(100% - 72px); }
 </style>
 </head>
 <body>
@@ -101,7 +106,8 @@
 </script>
 <noscript><a href="https://script.google.com/a/macros/bsiproduction.com/s/AKfycbxU4dP5Pcshs_bNFCrWA14lU9Y85dZ4vX0VCn18IpWwaDOOUrm28rGKz6u4m5XyA8dT/exec" style="color:#F1F2F3">Open ShopCall</a></noscript>
 <script src="/scan/pick.js"></script>
-<div id="cam" aria-hidden="true"><video id="camv" playsinline muted autoplay></video><i></i></div>
+<script src="/scan/cam.js"></script>
+<div id="cam"><video id="camv" playsinline muted autoplay aria-hidden="true"></video><i aria-hidden="true"></i><button type="button" id="camlens">Switch lens</button></div>
 <script>
   // ShopCall's Scan view camera (2026-10-02, Tristan: "the camera visible in that scan view without opening a secondary camera view").
   // The Scan view (hub/ScanUi.html) asks cam-hello; this page answers cam-ready, then follows its cam-box reports (where the box is,
@@ -109,7 +115,7 @@
   // tech's own account and answers scan-result (the box flashes). No report for 1.5 s (a reload, another view) = the camera stops.
   (function () {
     var GUC = /^https:\/\/[a-z0-9-]+-script\.googleusercontent\.com$/;
-    var box = document.getElementById('cam'), v = document.getElementById('camv'), shop = null, origin = '*', starting = false, seen = 0, flashT = 0, detector = null;
+    var box = document.getElementById('cam'), v = document.getElementById('camv'), shop = null, origin = '*', starting = false, seen = 0, flashT = 0, detector = null, lenses = [], switching = false;
     var cv = document.createElement('canvas'), cx = cv.getContext('2d', { willReadFrequently: true }), last = { t: '', at: 0 };
     function post(m) { if (shop) { m.via = 'shell'; try { shop.postMessage(m, origin); } catch (e) {} } }
     function stop() { try { (v.srcObject && v.srcObject.getTracks() || []).forEach(function (t) { t.stop(); }); } catch (e) {} v.srcObject = null; box.className = ''; starting = false; }
@@ -118,7 +124,8 @@
       if (v.readyState >= 2 && v.videoWidth) {
         if (detector) { detector.detect(v).then(function (c) { frameCodes(BsiPick.fromDetector(c, v.videoWidth, v.videoHeight)); }).catch(function () {}).then(function () { setTimeout(read, 120); }); return; }
         if (window.jsQR) {
-          var w = v.videoWidth, h = v.videoHeight, s = Math.min(1, 720 / Math.max(w, h)); cv.width = Math.round(w * s); cv.height = Math.round(h * s);
+          // a 1080p stream read at 960 on the long side: a case label's code at arm's length stays readable, the 120 ms loop stays cheap
+          var w = v.videoWidth, h = v.videoHeight, s = Math.min(1, 960 / Math.max(w, h)); cv.width = Math.round(w * s); cv.height = Math.round(h * s);
           cx.drawImage(v, 0, 0, cv.width, cv.height); var img = cx.getImageData(0, 0, cv.width, cv.height), code = jsQR(img.data, img.width, img.height, { inversionAttempts: 'dontInvert' });
           frameCodes(BsiPick.fromJsQr(code, img.width, img.height));
         }
@@ -129,16 +136,26 @@
     var pk = BsiPick.picker();
     function frameCodes(codes) { var t = pk.frame(codes, Date.now()); if (t) post({ bsi: 'scan', text: t.slice(0, 500) }); }
     function start() {
-      if (starting || v.srcObject) return; starting = true;
+      if (starting || switching || v.srcObject) return; starting = true;
       if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) { starting = false; return post({ bsi: 'cam-error', what: 'This browser can\'t use the camera. Type the code below.' }); }
-      navigator.mediaDevices.getUserMedia({ video: { facingMode: { ideal: 'environment' } }, audio: false }).then(function (st) {
-        starting = false; if (Date.now() - seen > 1500) { st.getTracks().forEach(function (t) { t.stop(); }); return; }
-        v.srcObject = st; v.play().catch(function () {}); read();
+      // scan/cam.js: a 1080p stream from the main back lens with continuous focus (the remembered one first)
+      BsiCam.open().then(function (r) {
+        var st = r.stream; starting = false; if (Date.now() - seen > 1500) { st.getTracks().forEach(function (t) { t.stop(); }); return; }
+        lensesAre(r.backs); v.srcObject = st; v.play().catch(function () {}); read();
       }).catch(function (err) {
         starting = false; var no = err && (err.name === 'NotAllowedError' || err.name === 'SecurityError');
         post({ bsi: 'cam-error', what: no ? 'The camera is blocked: allow it for bsiproduction.github.io in the browser\'s site settings.' : 'The camera didn\'t start (' + (err && err.name || 'unknown') + ').' });
       });
     }
+    // Switch lens: the next back camera; the read loop keeps running on whichever stream v holds
+    function lensesAre(list) { lenses = list || []; if (lenses.length > 1) box.setAttribute('data-lenses', ''); else box.removeAttribute('data-lenses'); }
+    document.getElementById('camlens').addEventListener('click', function () {
+      if (switching || !v.srcObject) return; switching = true;
+      BsiCam.next(v.srcObject, lenses).then(function (st) {
+        switching = false; if (!v.srcObject || Date.now() - seen > 1500) { st.getTracks().forEach(function (t) { t.stop(); }); return; }
+        v.srcObject = st; v.play().catch(function () {});
+      }).catch(function (err) { switching = false; stop(); post({ bsi: 'cam-error', what: 'The camera didn\'t start (' + (err && err.name || 'unknown') + ').' }); });
+    });
     function place(d) {
       var f = document.querySelector('iframe'); if (!f) return;
       var fr = f.getBoundingClientRect(), dy = fr.top + Math.max(0, fr.height - (+d.vh || fr.height)), dx = fr.left;   // a banner above Google's page, if any

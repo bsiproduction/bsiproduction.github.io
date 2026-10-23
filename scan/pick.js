@@ -3,7 +3,8 @@
  *   - several codes in view: the one nearest the middle of the picture is the one meant
  *   - it must be the same code two reads in a row (a code sliding past the middle doesn't count)
  *   - a code counts once while it stays in view; again only once it has been out of view 2 s
- *   - one at a time: nothing new is sent while the last scan's answer hasn't come back (8 s at most)
+ *   - paced: nothing new for 1.5 s after a send unless its answer is back first (2026-10-23: was 8 s; ShopCall now takes stacked
+ *     scans and answers each, so a slow answer no longer holds the next case on a truck load)
  * frame(codes, now) takes [{t: text, x, y}] (x, y = the code's centre as a share of the picture, 0..1) and returns the text to send, or ''.
  * answered() is called when ShopCall's result comes back. */
 (function (root) {
@@ -18,7 +19,7 @@
         var off = function (c) { return Math.pow((c.x == null ? .5 : c.x) - .5, 2) + Math.pow((c.y == null ? .5 : c.y) - .5, 2); };
         var pick = codes.slice().sort(function (a, b) { return off(a) - off(b); })[0];
         if (pick.t !== prev) { prev = pick.t; return ''; }
-        if (fired[pick.t] || (waiting && now - waiting < 8000)) return '';
+        if (fired[pick.t] || (waiting && now - waiting < 1500)) return '';
         fired[pick.t] = true; waiting = now;
         return pick.t;
       },

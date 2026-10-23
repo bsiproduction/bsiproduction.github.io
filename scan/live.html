@@ -36,16 +36,17 @@
 <body>
 <video id="v" playsinline muted autoplay></video>
 <div class="frame" id="frame" aria-hidden="true"></div>
-<div class="top"><div class="what" id="what">Scan</div><button type="button" id="done">Done</button></div>
+<div class="top"><div class="what" id="what">Scan</div><button type="button" id="lens" hidden>Switch lens</button><button type="button" id="done">Done</button></div>
 <div class="card" id="card" role="status" aria-live="polite"><div class="t" id="t">Starting the camera…</div><div class="w" id="w"></div><div class="n" id="n"></div></div>
 <script src="/scan/pick.js"></script>
+<script src="/scan/cam.js"></script>
 <script>
   // ShopCall's pages are served from Google's user-content domain; a message from anywhere else is ignored
   var SHOPCALL = /^https:\/\/[a-z0-9-]+-script\.googleusercontent\.com$/;
   var opener = window.opener, shop = null;   // the ShopCall window (its frame), learned from its first message
   var v = document.getElementById('v'), frame = document.getElementById('frame');
   var c = document.createElement('canvas'), ctx = c.getContext('2d', { willReadFrequently: true });
-  var detector = null, last = { text: '', at: 0 }, waiting = 0, n = 0, flashT = 0;
+  var detector = null, last = { text: '', at: 0 }, waiting = 0, n = 0, flashT = 0, lenses = [], switching = false;
   function $(id) { return document.getElementById(id); }
   function show(cls, t, w) { $('card').className = 'card' + (cls ? ' ' + cls : ''); $('t').textContent = t || ''; $('w').textContent = w || ''; }
   function flash(cls) { frame.className = 'frame ' + cls; clearTimeout(flashT); flashT = setTimeout(function () { frame.className = 'frame'; }, 900); }
@@ -87,7 +88,8 @@
         return;
       }
       if (window.jsQR) {
-        var w = v.videoWidth, h = v.videoHeight, s = Math.min(1, 720 / Math.max(w, h));
+        // a 1080p stream read at 960 on the long side: a case label's code at arm's length stays readable, the 120 ms loop stays cheap
+        var w = v.videoWidth, h = v.videoHeight, s = Math.min(1, 960 / Math.max(w, h));
         c.width = Math.round(w * s); c.height = Math.round(h * s);
         ctx.drawImage(v, 0, 0, c.width, c.height);
         var img = ctx.getImageData(0, 0, c.width, c.height), code = jsQR(img.data, img.width, img.height, { inversionAttempts: 'dontInvert' });
@@ -99,7 +101,9 @@
   function stop() { try { (v.srcObject && v.srcObject.getTracks() || []).forEach(function (t) { t.stop(); }); } catch (e) {} v.srcObject = null; }
   function start() {
     if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) return show('bad', 'No camera here', 'This browser can\'t use the camera. Type the code in ShopCall.');
-    navigator.mediaDevices.getUserMedia({ video: { facingMode: { ideal: 'environment' } }, audio: false }).then(function (stream) {
+    // scan/cam.js: a 1080p stream from the main back lens with continuous focus (the remembered one first)
+    BsiCam.open().then(function (r) {
+      var stream = r.stream; lenses = r.backs || []; $('lens').hidden = lenses.length < 2;
       v.srcObject = stream; v.play().catch(function () {});
       if (!n && !waiting) show('', 'Point at a code', 'Each scan saves in ShopCall and shows here.');
       tick();
@@ -108,10 +112,18 @@
       show('bad', denied ? 'The camera is blocked' : 'The camera didn\'t start', denied ? 'Tap Allow when asked, or turn the camera on for bsiproduction.github.io in the browser\'s site settings.' : 'Close other apps using the camera and try again (' + (err && err.name || 'unknown') + ').');
     });
   }
+  // Switch lens (2026-10-23): when the guess is a lens that won't focus close; the tick loop keeps running on whichever stream v holds
+  $('lens').onclick = function () {
+    if (switching || !v.srcObject) return; switching = true;
+    BsiCam.next(v.srcObject, lenses).then(function (stream) {
+      switching = false; if (document.hidden) { stream.getTracks().forEach(function (t) { t.stop(); }); return; }
+      var again = !v.srcObject; v.srcObject = stream; v.play().catch(function () {}); if (again) tick();   // back from a lock mid-switch
+    }).catch(function (err) { switching = false; stop(); show('bad', 'The camera didn\'t start', 'Close other apps using the camera and try again (' + (err && err.name || 'unknown') + ').'); });
+  };
   if ('BarcodeDetector' in window) { try { detector = new BarcodeDetector({ formats: ['qr_code'] }); } catch (e) { detector = null; } }
   if (!detector) { var s = document.createElement('script'); s.src = '/scan/jsQR.js'; document.head.appendChild(s); }
   // a phone that locks or switches apps stops the camera; it starts again when this page is back
-  document.addEventListener('visibilitychange', function () { if (document.hidden) stop(); else if (!v.srcObject) start(); });
+  document.addEventListener('visibilitychange', function () { if (document.hidden) stop(); else if (!v.srcObject && !switching) start(); });
   if (!opener) show('bad', 'Open this from ShopCall', 'In ShopCall: Scan, then Open the camera.');
   else { send({ bsi: 'scan-hello' }); start(); }
 </script>
