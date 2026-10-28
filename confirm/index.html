@@ -49,6 +49,12 @@
   .day input { width: 24px; height: 24px; margin: 0; flex: none; accent-color: var(--ok); }
   .day span { display: grid; line-height: 1.35; }
   .day small { color: var(--muted); font-size: 14px; }
+  .day input[type="radio"] { accent-color: var(--fg); }
+  .day:has(input[type="radio"]:checked) { border-color: var(--fg); background: var(--bg); }
+  /* a day with a call back (2026-10-28): its two calls together under the day */
+  .pair { display: grid; gap: 8px; }
+  .pair .ph { font-size: 14px; font-weight: 600; margin-top: 4px; }
+  .call .cb { display: grid; gap: 2px; margin-top: 6px; }
   .err { color: var(--danger); font-size: 15px; margin: 0; }
   .foot { color: var(--muted); font-size: 13px; text-align: center; }
   [hidden] { display: none !important; }
@@ -71,32 +77,73 @@
       .then(function (r) { if (!r.ok) throw new Error('Couldn\'t reach the office (' + r.status + '). Try again in a minute.'); return r.json(); })
       .then(function (j) { if (!j || j.ok !== true) throw new Error((j && j.error) || 'No answer from the office.'); return j.data; });
   }
+  var CHOICE = 'all';   // a one-day pair's can't-make-it pick: 'all' | 'first' | 'back' (2026-10-28)
   function esc(s) { return String(s == null ? '' : s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;'); }
   function paint() {
     var m = MODEL, el = document.getElementById('card');
     if (!m) { el.innerHTML = ERR ? '<h1>Couldn\'t load your call</h1><p class="hi">' + esc(ERR) + '</p><p class="hi"><a href="' + esc(DIRECT) + '">Open it directly</a>, or reply to the email.</p>'
       : '<p class="hi" role="status">Loading your call…</p>'; return; }
     if (m.bad) { el.innerHTML = '<h1>This link can\'t be used</h1><p class="hi">' + esc(m.bad) + '</p>'; return; }
-    var calls = m.lines.map(function (l) { return '<div class="call"><span class="d">' + esc(l.day) + '</span>' + (m.answer === 'some' && l.state === 'cant' ? '<span class="no">You can\'t make this day</span>' : '') + '<span>' + esc(l.role) + ' · ' + esc(l.hours) + '</span><span class="m">' + esc(l.place) + (l.meals ? ' · meals ' + esc(l.meals) : '') + '</span></div>'; }).join('');
+    // a call back (2026-10-28): its line carries back + of (its first call's id); the pair is drawn together under its day
+    var G = groups(m.lines), backs = m.lines.some(function (l) { return l.back; }), pair = pairOnly(G);
+    var noMark = function (l) { return m.answer === 'some' && l.state === 'cant' ? '<span class="no">You can\'t make this ' + (backs ? 'call' : 'day') + '</span>' : ''; };
+    var meta = function (l) { return '<span class="m">' + esc(l.place) + (l.meals ? ' · meals ' + esc(l.meals) : '') + '</span>'; };
+    var calls = G.map(function (g) { var l = g.a;
+      if (!g.b) return '<div class="call"><span class="d">' + esc(l.day) + '</span>' + noMark(l) + '<span>' + esc(l.role) + ' · ' + (l.back ? 'Call back ' : '') + esc(l.hours) + '</span>' + meta(l) + '</div>';
+      return '<div class="call"><span class="d">' + esc(l.day) + '</span>' + noMark(l) + '<span>' + esc(l.role) + ' · ' + esc(l.hours) + '</span>' + meta(l) +
+        '<div class="cb">' + noMark(g.b) + '<span>Call back ' + esc(g.b.hours) + '</span>' + (g.b.place !== l.place ? '<span class="m">' + esc(g.b.place) + '</span>' : '') + '</div></div>'; }).join('');
     var head = '<h1>' + esc(m.gig) + '</h1><p class="hi">' + (m.first ? 'Hi ' + esc(m.first) + '. ' : '') + 'Your call' + (m.lines.length === 1 ? '' : 's') + ' on this job:</p>' + calls;
     var state = '';
     if (DONE && DONE.test) state = '<div class="state test">This is a test link, so nothing was saved.<small>Real links work once the office turns on sending to crew.</small></div>';
     else if (m.answer === 'confirmed') state = '<div class="state ok">You\'re confirmed. Thank you!<small>If that changes, tap below and let us know.</small></div>';
     else if (m.answer === 'some') { var n = m.lines.filter(function (l) { return l.state === 'confirmed'; }).length;
-      state = '<div class="state some">You can make ' + n + ' of ' + m.lines.length + ' days. Thank you!' + (m.reason ? '<small>' + esc(String(m.reason).replace(/^'/, '')) + '</small>' : '') + '<small>The office has been told and will find someone for the other days.</small></div>'; }
+      var made = pair ? (pair.a.state === 'confirmed' ? 'You can make the first call, not the call back.' : 'You can make the call back, not the first call.')
+        : 'You can make ' + n + ' of ' + m.lines.length + (backs ? ' calls.' : ' days.');
+      state = '<div class="state some">' + made + ' Thank you!' + (m.reason ? '<small>' + esc(String(m.reason).replace(/^'/, '')) + '</small>' : '') + '<small>The office has been told and will find someone for the other ' + (pair ? 'call' : backs ? 'calls' : 'days') + '.</small></div>'; }
     else if (m.answer === 'cant') state = '<div class="state cant">You told us you can\'t make it.' + (m.reason ? '<small>' + esc(String(m.reason).replace(/^'/, '')) + '</small>' : '') + '<small>The office has been told. Tap below if you can after all.</small></div>';
     var answered = (m.answer === 'confirmed' || m.answer === 'cant' || m.answer === 'some') && !ASK;
+    var why = function (ph) { return '<label for="why">Anything the office should know? (optional)</label><textarea id="why" maxlength="200" placeholder="' + ph + '"></textarea>'; };
+    var back = '<button type="button" onclick="ASK=\'change\'; paint()">Back</button>';
+    var tick = function (l, title, sub) { return '<label class="day"><input type="checkbox" onchange="PICK[this.value]=this.checked" value="' + esc(l.id) + '"' + (PICK[l.id] ? ' checked' : '') + '><span>' + title + '<small>' + sub + '</small></span></label>'; };
     var btns = answered ? '<button type="button" class="change" onclick="ASK=\'change\'; paint()">Change my answer</button>' :
-      ASK === 'cant' ? '<label for="why">Anything the office should know? (optional)</label><textarea id="why" maxlength="200" placeholder="e.g. another gig that day"></textarea>' +
-        '<div class="btns"><button type="button" class="yes" onclick="send(\'cant\')"' + (BUSY ? ' disabled' : '') + '>' + (BUSY ? 'Sending…' : 'Send: I can\'t make it') + '</button><button type="button" onclick="ASK=\'change\'; paint()">Back</button></div>' :
-      ASK === 'some' ? '<fieldset class="days"><legend>Tick the days you can work</legend>' + m.lines.map(function (l) {
-          return '<label class="day"><input type="checkbox" onchange="PICK[this.value]=this.checked" value="' + esc(l.id) + '"' + (PICK[l.id] ? ' checked' : '') + '><span>' + esc(l.day) + '<small>' + esc(l.role) + ' · ' + esc(l.hours) + '</small></span></label>'; }).join('') + '</fieldset>' +
-        '<label for="why">Anything the office should know? (optional)</label><textarea id="why" maxlength="200" placeholder="e.g. another gig on Saturday"></textarea>' +
-        '<div class="btns"><button type="button" class="yes" onclick="send(\'some\')"' + (BUSY ? ' disabled' : '') + '>' + (BUSY ? 'Sending…' : 'Send my days') + '</button><button type="button" onclick="ASK=\'change\'; paint()">Back</button></div>' :
+      // a one-day pair: the three answers Tristan asked for (10/28); any of it = cant, one half = some with that half's row
+      ASK === 'cant' && pair ? '<fieldset class="days"><legend>Which part can\'t you make?</legend>' +
+          radio('all', 'Can\'t make any of it', 'Neither call') +
+          radio('first', 'First call only' + (at(pair.a) ? ' (' + esc(at(pair.a)) + ')' : ''), 'I can make ' + esc(pair.a.hours) + ', not the call back') +
+          radio('back', 'Call back only' + (at(pair.b) ? ' (' + esc(at(pair.b)) + ')' : ''), 'I can make ' + esc(pair.b.hours) + ', not the first call') + '</fieldset>' +
+        why('e.g. another gig that morning') +
+        '<div class="btns"><button type="button" class="yes" id="go" onclick="sendPair()"' + (BUSY ? ' disabled' : '') + '>' + (BUSY ? 'Sending…' : goWords()) + '</button>' + back + '</div>' :
+      ASK === 'cant' ? why('e.g. another gig that day') +
+        '<div class="btns"><button type="button" class="yes" onclick="send(\'cant\')"' + (BUSY ? ' disabled' : '') + '>' + (BUSY ? 'Sending…' : 'Send: I can\'t make it') + '</button>' +
+          (m.some && backs ? '<button type="button" onclick="pickDays()"' + (BUSY ? ' disabled' : '') + '>I can make some of it</button>' : '') + back + '</div>' :
+      ASK === 'some' ? '<fieldset class="days"><legend>' + (backs ? 'Tick the calls you can work' : 'Tick the days you can work') + '</legend>' + G.map(function (g) {
+          if (!g.b) return tick(g.a, esc(g.a.day), esc(g.a.role) + ' · ' + (g.a.back ? 'Call back ' : '') + esc(g.a.hours));
+          return '<div class="pair"><span class="ph">' + esc(g.a.day) + '</span>' + tick(g.a, 'First call', esc(g.a.role) + ' · ' + esc(g.a.hours)) + tick(g.b, 'Call back', esc(g.b.hours)) + '</div>'; }).join('') + '</fieldset>' +
+        why('e.g. another gig on Saturday') +
+        '<div class="btns"><button type="button" class="yes" onclick="send(\'some\')"' + (BUSY ? ' disabled' : '') + '>' + (BUSY ? 'Sending…' : backs ? 'Send my calls' : 'Send my days') + '</button>' + back + '</div>' :
       '<div class="btns"><button type="button" class="yes" onclick="send(\'confirmed\')"' + (BUSY ? ' disabled' : '') + '>' + (BUSY ? 'Sending…' : 'Confirm') + '</button>' +
-        (m.some ? '<button type="button" onclick="pickDays()"' + (BUSY ? ' disabled' : '') + '>I can make some days</button>' : '') +
-        '<button type="button" onclick="ASK=\'cant\'; paint()"' + (BUSY ? ' disabled' : '') + '>I can\'t make it</button></div>';
+        (m.some && !pair ? '<button type="button" onclick="pickDays()"' + (BUSY ? ' disabled' : '') + '>' + (backs ? 'I can make some of it' : 'I can make some days') + '</button>' : '') +
+        '<button type="button" onclick="CHOICE=\'all\'; ASK=\'cant\'; paint()"' + (BUSY ? ' disabled' : '') + '>I can\'t make it</button></div>';
     el.innerHTML = head + state + btns + (ERR ? '<p class="err" role="alert">' + esc(ERR) + '</p>' : '');
+  }
+  /** The lines as the page draws them: [{a, b}] where b is a's call back (a line whose of is a's id); a call back whose first call
+   *  isn't theirs stands alone. Order kept (the server puts a call back after its date's other lines). */
+  function groups(lines) {
+    var byId = {}, out = [];
+    lines.forEach(function (l) { if (!l.back) { var g = { a: l, b: null }; byId[l.id] = g; out.push(g); } });
+    lines.forEach(function (l) { if (l.back) { var g = byId[l.of]; if (g && !g.b) g.b = l; else out.push({ a: l, b: null }); } });
+    return out.sort(function (x, y) { return lines.indexOf(x.a) - lines.indexOf(y.a); });
+  }
+  /** The call is one day with a call back and nothing else: the pair, else null. */
+  function pairOnly(G) { return G.length === 1 && G[0].b ? G[0] : null; }
+  /** "7 AM – 12 PM" -> "7 AM"; "call time to come" -> "". */
+  function at(l) { return /\d/.test(l.hours) ? String(l.hours).split(' – ')[0] : ''; }
+  function radio(v, title, sub) { return '<label class="day"><input type="radio" name="part" value="' + v + '" onchange="CHOICE=this.value; var b=document.getElementById(\'go\'); if (b) b.textContent=goWords()"' + (CHOICE === v ? ' checked' : '') + '><span>' + title + '<small>' + sub + '</small></span></label>'; }
+  function goWords() { return CHOICE === 'all' ? 'Send: I can\'t make it' : 'Send my answer'; }
+  function sendPair() {
+    var p = pairOnly(groups(MODEL.lines)); if (!p) return;
+    if (CHOICE === 'all') return send('cant');
+    PICK = {}; PICK[(CHOICE === 'first' ? p.a : p.b).id] = true; send('some');
   }
   // start from what they told us before (a some-days answer), else nothing ticked
   function pickDays() { PICK = {}; if (MODEL.answer === 'some') MODEL.lines.forEach(function (l) { if (l.state === 'confirmed') PICK[l.id] = true; }); ASK = 'some'; ERR = ''; paint(); }
@@ -104,7 +151,7 @@
     if (BUSY) return;
     var why = document.getElementById('why'), whyText = why ? why.value : '';
     var can = Object.keys(PICK).filter(function (k) { return PICK[k]; });
-    if (choice === 'some' && !can.length) { ERR = 'Tick at least one day you can work.'; paint(); return; }
+    if (choice === 'some' && !can.length) { ERR = MODEL.lines.some(function (l) { return l.back; }) ? 'Tick at least one call you can work.' : 'Tick at least one day you can work.'; paint(); return; }
     BUSY = true; ERR = ''; paint();
     if (why) document.getElementById('why').value = whyText;
     api({ fn: 'answer', t: TOKEN, choice: choice, reason: whyText, can: can })
