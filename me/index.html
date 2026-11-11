@@ -73,6 +73,13 @@
   --v-config: #C6ADA9; --v-config-deep: #332A29;   /* morganite (a dusty rose-taupe): 17.4 from the nearest fixed hue, 13.2 from errors */
   --v-registry: #AA9BD4; --v-registry-deep: #29263A;   /* iolite (a grey violet): 17.6 from link, 12.2 from gigs */
   --v-patches: #BDA9C6; --v-patches-deep: #2D2733;   /* lepidolite (Patch, 2026-09-27 proposal): 19.9 from white tape, 11.9 from rose quartz */
+  --v-roster: #CEA0AC; --v-roster-deep: #352529;   /* dusty rose (Roster, 10/19, Tristan picked it from two): 17 from the nearest meaning colour, 9.5 from Config; ahm inherits it */
+  --v-leaders: #F7CB58; --v-leaders-deep: #2E2202;   /* trophy gold (Leaderboard, 10/26, Tristan picked it from four): 10.8 from warn, the closest call; never used for a warning */
+  --v-gignotes: #AAB26E; --v-gignotes-deep: #262817;   /* epidote (Gig notes, 10/30; design/gig-notes-2026-10-30/palette.js): 15.8 from yellow tape, 10.9 from calendar, the closest calls */
+  /* PEOPLE (2026-10-26, Tristan picked them with the Leaderboard's trophy gold): one colour per staff member, the slot named by Config
+     PEOPLE_COLORS (danny:1, will:2, tristan:3, mike:4). Same OKLCH hue in every theme, one lightness for all (nobody louder). Always a
+     ROUND mark beside the name (tapes are square). Made by design/leaderboard-2026-10-26/palette/palettes.js; >= 3:1 on every card. */
+  --who-1: #F29DDE; --who-2: #28D6DF; --who-3: #FFA177; --who-4: #9ECF75; --who-none: #7D848C;
   /* DEPARTMENTS (crew calls, 2026-09-28, Tristan: "sorted by department into different colors"): identity on the crew day
      timeline's bars and the role marks beside them, never on status. A categorical set checked with the dataviz validator on
      --bg-raised (lightness band, chroma, CVD and normal-vision separation of neighbours, >= 3:1 contrast: all pass in this
@@ -172,6 +179,10 @@
   --v-subrentals: #2E407C; --v-subrentals-deep: #C9D6E8;   /* moonstone · ink 9.8:1 on white, 6.7:1 on the stone, 17.1 from black tape */
   --v-config: #432420; --v-config-deep: #C6ADA9;   /* morganite · ink 13.9:1 on white, 6.6:1 on the stone, 17.9 from black tape */
   --v-registry: #341D5C; --v-registry-deep: #AA9BD4;   /* iolite · ink 14.2:1 on white, 5.7:1 on the stone, 17.1 from black tape */
+  --v-roster: #612D39; --v-roster-deep: #E5ADB7;   /* dusty rose ink (Roster, 10/19) · 22 from the nearest meaning colour, 10.0 from Config */
+  --v-leaders: #866300; --v-leaders-deep: #F6EACE;   /* trophy gold ink (Leaderboard, 10/26) */
+  --v-gignotes: #295401; --v-gignotes-deep: #DDEED4;   /* epidote ink (Gig notes, 10/30): 16.0 from ok, 11.4 from calendar */
+  --who-1: #953A83; --who-2: #007A85; --who-3: #A53E00; --who-4: #417300; --who-none: #646A73;   /* PEOPLE (2026-10-26): the same hues, deep for a light card */
   /* DEPARTMENTS on light (2026-09-29, Tristan: "yes" to tuning them): each keeps its Dark hue and sits where the bar is >= 3:1
      on white AND carries the dark body text at >= 4.5:1 (the bar's words are --fg on Light: UiStyles "LIGHT HEADERS" block).
      Dataviz validator on white, in this order: lightness band, chroma, adjacent CVD (worst 9.8 deutan) and normal-vision
@@ -202,8 +213,6 @@
   --meter-lit: #FFF7EC; --meter-off: #5A4628; --meter-off-hero: #7A6240; --field-edge: #54412A;
   /* its own page stones (tools/theme-stones.js, 2026-10-08): the Mineral hues cast to this theme, each >= 15 dE00 from its meaning colours
      and every tape, >= 8 from the other pages (hue / deep tint). Regenerate with node tools/theme-stones.js --write */
-  /* its own page stones (tools/theme-stones.js, 2026-10-08): the Mineral hues cast to this theme, each >= 15 dE00 from its meaning colours
-     and every tape, >= 8 from the other pages (hue / deep tint). Regenerate with node tools/theme-stones.js --write */
   --v-today: #C1A995; --v-today-deep: #46280C;
   --v-gigs: #DAA0CE; --v-gigs-deep: #42243D;
   --v-projects: #F2C3A2; --v-projects-deep: #47270F;
@@ -225,6 +234,9 @@
   --v-config: #F7BFAD; --v-config-deep: #4A2419;
   --v-registry: #D999AB; --v-registry-deep: #49222E;
   --v-patches: #F9ABCC; --v-patches-deep: #472333;
+  --v-roster: #D9A7A9; --v-roster-deep: #4A2226;
+  --v-leaders: #C2AA83; --v-leaders-deep: #402C05;
+  --v-gignotes: #B6B07C; --v-gignotes-deep: #363105;
   color-scheme: dark;
 }
 [data-theme="worklight"] {
@@ -243,8 +255,6 @@
   --phase-out: #8FAEDC;  --phase-out-fg: #06101F;
   --phase-intake: #1E3A66; --phase-intake-fg: #D5E2F7;
   --meter-lit: #4DA3FF; --meter-off: #243C6E; --meter-off-hero: #35588F; --field-edge: #2B4C86;   /* round 2 (10/8 evening): the lit meter is the clip light itself; field edges a step bluer */
-  /* its own page stones (tools/theme-stones.js, 2026-10-08): the Mineral hues cast to this theme, each >= 15 dE00 from its meaning colours
-     and every tape, >= 8 from the other pages (hue / deep tint). Regenerate with node tools/theme-stones.js --write */
   /* its own page stones (tools/theme-stones.js, 2026-10-08): the Mineral hues cast to this theme, each >= 15 dE00 from its meaning colours
      and every tape, >= 8 from the other pages (hue / deep tint). Regenerate with node tools/theme-stones.js --write */
   --v-today: #D5DA9D; --v-today-deep: #272908;
@@ -268,6 +278,9 @@
   --v-config: #DD9FB8; --v-config-deep: #391B28;
   --v-registry: #B1B0D3; --v-registry-deep: #25223E;
   --v-patches: #D19EE2; --v-patches-deep: #301E36;
+  --v-roster: #DAB0B3; --v-roster-deep: #3B1B20;
+  --v-leaders: #E9D38F; --v-leaders-deep: #2F2605;
+  --v-gignotes: #CDC972; --v-gignotes-deep: #2A2806;
   color-scheme: dark;
 }
 [data-theme="festival"] {
@@ -289,7 +302,7 @@
   --meter-lit: #FFFFFF; --meter-off: #3D3D3D; --meter-off-hero: #474747; --field-edge: #3F3F3F;
   /* the stones at full strength, each with a deep tint for the header */
   --v-today: #FF7A00; --v-today-deep: #2A1200;
-  --v-gigs: #7C6FFF; --v-gigs-deep: #15123A;
+  --v-gigs: #94A4F6; --v-gigs-deep: #232955;   /* softer periwinkle (Tristan 10/19 in Festival: "the purple is very dark"; was #7C6FFF / #15123A): 8.2 from Sub-rentals, 15.2 from a meaning colour */
   --v-projects: #FF6A48; --v-projects-deep: #331008;
   --v-board: #FF5FAE; --v-board-deep: #33102A;
   --v-inventory: #2EE07A; --v-inventory-deep: #063A1E;
@@ -309,6 +322,9 @@
   --v-patches: #C79BFF; --v-patches-deep: #2A1A3A;
   --v-config: #FF9A8A; --v-config-deep: #3A1A14;
   --v-registry: #B49BFF; --v-registry-deep: #241A3A;
+  --v-roster: #FFA7BF; --v-roster-deep: #3C1823;   /* dusty rose (Roster, 10/19) · 21 from the nearest meaning colour, 14.4 from Config */
+  --v-leaders: #F7CB58; --v-leaders-deep: #2E2202;   /* trophy gold (Leaderboard, 10/26), graphite's */
+  --v-gignotes: #A3C003; --v-gignotes-deep: #1E2501;   /* epidote at full strength (Gig notes, 10/30): 17.9 from yellow tape, 12.6 from orders */
   color-scheme: dark;
 }
 [data-theme="callsheet"] {
@@ -330,8 +346,7 @@
   --meter-lit: #3A3028; --meter-off: #CFC4AC; --meter-off-hero: #CFC4AC; --field-edge: #BDB29B;
   --meter-truck: #C94F8C;
   --dept-audio: #4796F7; --dept-lighting: #959A20; --dept-video: #8F83E9; --dept-staging: #4EA72B; --dept-management: #E86191; --dept-other: #7C8289;
-  /* its own page stones (tools/theme-stones.js, 2026-10-08): the Mineral hues cast to this theme, each >= 15 dE00 from its meaning colours
-     and every tape, >= 8 from the other pages (ink / pastel, as daylight). Regenerate with node tools/theme-stones.js --write */
+  --who-1: #953A83; --who-2: #007A85; --who-3: #A53E00; --who-4: #417300; --who-none: #646A73;   /* PEOPLE (2026-10-26): the same hues, deep for a light card */
   /* its own page stones (tools/theme-stones.js, 2026-10-08): the Mineral hues cast to this theme, each >= 15 dE00 from its meaning colours
      and every tape, >= 8 from the other pages (ink / pastel, as daylight). Regenerate with node tools/theme-stones.js --write */
   --v-today: #343409; --v-today-deep: #D4D5A7;
@@ -355,6 +370,9 @@
   --v-config: #412022; --v-config-deep: #F6C2C3;
   --v-registry: #4A3D60; --v-registry-deep: #D7C9F3;
   --v-patches: #4A1852; --v-patches-deep: #E4C5E9;
+  --v-roster: #6F2A3D; --v-roster-deep: #F5C1CB;
+  --v-leaders: #4A3D1E; --v-leaders-deep: #E2CFA5;
+  --v-gignotes: #213104; --v-gignotes-deep: #C6D9AF;
   color-scheme: light;
 }
 </style>
@@ -381,8 +399,9 @@
   .days div { background: var(--bg-sunken); border-radius: 10px; padding: 8px 10px; display: grid; gap: 2px; font-size: 15px; }
   .state { font-size: 14px; font-weight: 600; }
   .state.ok { color: var(--fg); } .state.no { color: var(--warn); }   /* a list's states: plain words, amber only for a problem (done teal is for moments) */
+  .ans { display: grid; gap: 8px; margin-top: 6px; }   /* their answer (11/11): a call's buttons and reason box, 8px+ apart */
   .open { border-left: 3px solid var(--warn); padding-left: 10px; }
-  /* who else is on the call (Config CREW_PAGE_TEAM, 10/19): folded under the call, one person a line, their phone a link */
+  /* who else is on the call (10/19): folded under the call, one person a line, their phone a link */
   .team { margin-top: 4px; }
   .team summary { cursor: pointer; color: var(--fg); font-size: 15px; font-weight: 600; min-height: 44px; display: flex; align-items: center; }
   .team summary:focus-visible { outline: 3px solid var(--accent); outline-offset: 2px; border-radius: 6px; }
@@ -429,18 +448,38 @@
       .then(r => { if (!r.ok) throw new Error('Couldn\'t reach the office (' + r.status + '). Try again in a minute.'); return r.json(); })
       .then(j => { if (!j || j.ok !== true) throw new Error((j && j.error) || 'No answer from the office.'); return j.data; });
   }
-  const S = { m: null, err: '', form: null, busy: false, res: null };
+  const S = { m: null, err: '', form: null, busy: false, res: null, ans: null, ansRes: null };
   if (fx && fx.meState) Object.assign(S, JSON.parse(JSON.stringify(fx.meState)));
 
+  // call back (10/28): a call marked `back` (CrewPage.gs cpModel_) reads "call back 6 PM–11 PM"
   function callsHtml(m) {
-    const st = s => s === 'confirmed' ? '<span class="state ok">confirmed</span>' : s === 'cant' ? '<span class="state no">can\'t make it</span>' : '';
+    const st = (s, c) => s === 'confirmed' ? '<span class="state ok">confirmed</span>' : s === 'cant' ? '<span class="state no">can\'t make it' + (c && c.reason ? ': ' + esc(c.reason) : '') + '</span>'
+      : s === 'sent' && c && c.rowId ? '<span class="state">the office is waiting for your answer</span>' : '';
     return '<section aria-labelledby="h-calls"><h2 id="h-calls">Your next calls <span class="n">' + m.calls.length + '</span></h2>' +
       (m.calls.length ? m.calls.map(c => '<div class="row"><div class="nm">' + esc(c.gig) + '</div><div class="sub">' + day(c.date) + (c.role ? ' · ' + esc(c.role) : '') +
-        (c.call ? ' · ' + (c.shop ? '' : 'call ') + t12(c.call) + (c.out ? '–' + t12(c.out) : '') : '') + (c.place ? ' · ' + esc(c.place) : '') + '</div>' +
-        (c.tell ? '<div class="sub">' + esc(c.tell) + '</div>' : '') + (c.brief ? '<div class="sub">' + esc(c.brief) + '</div>' : '') + st(c.state) + teamHtml(c) + '</div>').join('')
+        (c.call ? ' · ' + (c.shop ? '' : c.back ? 'call back ' : 'call ') + t12(c.call) + (c.out ? '–' + t12(c.out) : '') : '') + (c.place ? ' · ' + esc(c.place) : '') + '</div>' +
+        (c.tell ? '<div class="sub">' + esc(c.tell) + '</div>' : '') + (c.brief ? '<div class="sub">' + esc(c.brief) + '</div>' : '') + st(c.state, c) + answerHtml(c) + teamHtml(c) + '</div>').join('')
         : '<div class="sub">No calls coming up. The office adds you to a call sheet and sends it.</div>') + '</section>';
   }
-  /** Who else is on this call (CrewPage.gs cpTeam_, Config CREW_PAGE_TEAM): folded; a name, their role(s), their call when it isn't
+  /** Their answer to a call (11/11, CrewPage.gs cpAnswer_): only a call with a rowId (a gig call the office sent; an older server sends none).
+   *  Not answered: I can make it (one tap) / I can't make it (opens the reason). Answered: Change my answer → the other answer, with Keep
+   *  my answer to back out. One call open at a time (S.ans = {rowId, mode: 'cant' | 'can'}); the result line sits under that call. */
+  function answerHtml(c) {
+    if (!c.rowId) return '';
+    const id = esc(c.rowId), a = S.ans && S.ans.rowId === c.rowId ? S.ans : null, busy = S.busy && !!a, dis = S.busy ? ' disabled' : '';
+    const res = S.ansRes && S.ansRes.rowId === c.rowId ? '<div class="res ' + (S.ansRes.ok ? 'ok' : 'bad') + '" role="status">' + esc(S.ansRes.text) + '</div>' : '';
+    const keep = '<button type="button" class="quiet" onclick="ME.keep()"' + dis + '>' + (c.state === 'confirmed' || c.state === 'cant' ? 'Keep it' : 'Cancel') + '</button>';
+    if (a && a.mode === 'cant') return '<div class="ans"><label for="a-why">' + (c.state === 'confirmed' ? 'Can\'t make it after all? Tell the office why (optional)' : 'Tell the office why (optional)') +
+      '<textarea class="field" id="a-why" maxlength="200" oninput="ME.why(this.value)">' + esc(a.why || '') + '</textarea></label>' +
+      '<div class="two"><button type="button" class="primary" onclick="ME.answer(\'' + id + '\', \'cant\')"' + dis + '>' + (busy ? 'Sending…' : 'Send') + '</button>' + keep + '</div>' + res + '</div>';
+    if (a && a.mode === 'can') return '<div class="ans"><div class="sub">Tell the office you can make it after all?</div>' +
+      '<div class="two"><button type="button" class="primary" onclick="ME.answer(\'' + id + '\', \'confirmed\')"' + dis + '>' + (busy ? 'Sending…' : 'I can make it') + '</button>' + keep + '</div>' + res + '</div>';
+    if (c.state === 'confirmed') return '<div class="ans"><button type="button" class="quiet" onclick="ME.ask(\'' + id + '\', \'cant\')"' + dis + '>Change my answer</button>' + res + '</div>';
+    if (c.state === 'cant') return '<div class="ans"><button type="button" class="quiet" onclick="ME.ask(\'' + id + '\', \'can\')"' + dis + '>Change my answer</button>' + res + '</div>';
+    return '<div class="ans"><div class="two"><button type="button" class="primary" onclick="ME.answer(\'' + id + '\', \'confirmed\')"' + dis + '>' + (busy ? 'Sending…' : 'Can make it') + '</button>' +
+      '<button type="button" class="quiet" onclick="ME.ask(\'' + id + '\', \'cant\')"' + dis + '>Can\'t make it</button></div>' + res + '</div>';
+  }
+  /** Who else is on this call (CrewPage.gs cpTeam_; a model without `team`, an older library pin, draws nothing): folded; a name, their role(s), their call when it isn't
    *  yours, their phone (tap to call); then the roles still to fill. Nothing when the office has it off (no team). */
   function teamHtml(c) {
     const t = c.team; if (!t || (!(t.people || []).length && !(t.open || []).length)) return '';
@@ -492,6 +531,17 @@
   }
   function load() { call('model').then(m => { S.m = m; S.err = ''; draw(); }).catch(e => { S.err = errText(e); draw(); }); }
   window.ME = {
+    ask: (rowId, mode) => { if (S.busy) return; S.ans = { rowId: rowId, mode: mode, why: '' }; S.ansRes = null; draw(); const t = document.getElementById('a-why'); if (t) t.focus(); },
+    keep: () => { if (S.busy) return; S.ans = null; S.ansRes = null; draw(); },
+    why: v => { if (S.ans) S.ans.why = v; },
+    answer: (rowId, state) => {
+      if (S.busy) return;
+      if (!S.ans || S.ans.rowId !== rowId) S.ans = { rowId: rowId, mode: state === 'cant' ? 'cant' : 'can', why: '' };
+      S.busy = true; S.ansRes = null; draw();
+      call('answer', { rowId: rowId, state: state, reason: state === 'cant' ? S.ans.why || '' : '' })
+        .then(r => { S.busy = false; S.ans = null; if (r.model) S.m = r.model; S.ansRes = { rowId: rowId, ok: true, text: r.what }; draw(); })
+        .catch(e => { S.busy = false; S.ansRes = { rowId: rowId, ok: false, text: errText(e) }; draw(); });
+    },
     openMiss: () => { const p = S.m.pick[0] || { date: '', gigs: [] }; S.form = { day: p.date, gigId: p.gigs.length ? p.gigs[0].id : '', in: '', out: '', note: '', punchId: '' }; S.res = null; draw(); },
     openOut: id => { S.form = { punchId: id, out: '', note: '' }; S.res = null; draw(); },
     close: () => { S.form = null; S.res = null; draw(); },
